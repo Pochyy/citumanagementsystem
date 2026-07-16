@@ -24,6 +24,10 @@ export default function SideBar() {
       <Link to="/Page/InternshipOpportunities/Opportunities">Opportunities Page </Link>
       <br />
       <Link to="/Page/MyInternships/">My Internships </Link>
+      <br />
+      <Link to="/Page/LoginScreen/">Login Screen </Link>
+      <br />
+      <Link to="/Page/RegisterScreen/">Register Screen </Link>
 
       
 
