@@ -1,8 +1,8 @@
 import {Routes, Route} from 'react-router-dom';
 import MotherScreen from "./MotherScreen/MotherScreen";
-import ProfilePage from "./Components Folder/Student-Profile-Page/ProfilePage";
-import OpportunitiesPage from "./Components Folder/OpportunitiesPage/OpportunitiesPage";
-import MyInternshipsPage from "./Components Folder/MyInternshipsPage/Myinternshipspage";
+import ProfilePage from "./Components Folder/StudentFolder/Student-Profile-Page/ProfilePage";
+import OpportunitiesPage from "./Components Folder/StudentFolder/OpportunitiesPage/OpportunitiesPage";
+import MyInternshipsPage from "./Components Folder/StudentFolder/MyInternshipsPage/Myinternshipspage";
 
 export default function MainContent() {
   return (
