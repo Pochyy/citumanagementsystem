@@ -19,8 +19,11 @@ export default function SideBar() {
 
       <h1>Component Links </h1>
 
-      <Link to="/component-1">Component 1 - Profile Box </Link>
-
+      <Link to="/Page/StudentProfile/ProfilePage">Student Profile Page </Link>
+      <br />
+      <Link to="/Page/InternshipOpportunities/Opportunities">Opportunities Page </Link>
+      <br />
+      <Link to="/Page/MyInternships/">My Internships </Link>
 
       
 

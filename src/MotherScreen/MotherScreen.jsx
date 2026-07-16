@@ -1,4 +1,5 @@
 import Logo from "./logo.png";
+import {Outlet} from "react-router-dom";
 
 export default function MotherScreen() {
   const titleStyle = {
@@ -237,7 +238,10 @@ export default function MotherScreen() {
               height: "95%",
               backgroundColor: "white",
             }}
-          ></div>
+          >
+            <Outlet />
+            
+            </div>
         </div>
       </div>
     </div>

@@ -1,5 +1,8 @@
 import {Routes, Route} from 'react-router-dom';
 import MotherScreen from "./MotherScreen/MotherScreen";
+import ProfilePage from "./Components Folder/Student-Profile-Page/ProfilePage";
+import OpportunitiesPage from "./Components Folder/OpportunitiesPage/OpportunitiesPage";
+import MyInternshipsPage from "./Components Folder/MyInternshipsPage/Myinternshipspage";
 
 export default function MainContent() {
   return (
@@ -15,6 +18,9 @@ export default function MainContent() {
       <Routes>
         <Route path="/Page/StudentProfile/ProfileBox" element={<div>Component 1</div>} />
         <Route path="/Page/MotherScreen" element={<MotherScreen/>} />
+        <Route path="/Page/StudentProfile/ProfilePage" element={<ProfilePage/>} />
+        <Route path="/Page/InternshipOpportunities/Opportunities" element={<OpportunitiesPage/>} />
+        <Route path="/Page/MyInternships/" element={<MyInternshipsPage/>} />
       </Routes>
 
 
