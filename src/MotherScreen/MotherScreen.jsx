@@ -4,6 +4,10 @@ import OpportunitiesPage from "../Components Folder/StudentFolder/OpportunitiesP
 import MyInternshipsPage from "../Components Folder/StudentFolder/MyInternshipsPage/Myinternshipspage";
 import LoginScreen from "../Components Folder/StudentFolder/LoginAndLogoutPage/Login";
 import RegisterScreen from "../Components Folder/StudentFolder/LoginAndLogoutPage/Logout";
+import Attendancepage from "../Components Folder/StudentFolder/AttendancePage/Attendancepage";
+import Announcementspage from "../Components Folder/StudentFolder/AnnouncementPage/Announcementpage";
+import MessagesPage from "../Components Folder/StudentFolder/MessagesPage/MessagesPage";
+import NotificationsPage from "../Components Folder/StudentFolder/NotificationPage/NotificationsPage";
 
 
 import Logo from "./logo.png";
@@ -256,6 +260,11 @@ export default function MotherScreen() {
           <Route path="/Page/MyInternships/" element={<MyInternshipsPage/>} />
           <Route path="/Page/LoginScreen/" element={<LoginScreen/>} />
           <Route path="/Page/RegisterScreen/" element={<RegisterScreen/>} />
+          <Route path="/Page/AttendancePage/" element={<Attendancepage/>} />
+          <Route path="/Page/AnnouncementPage/" element={<Announcementspage/>} />
+          <Route path="/Page/MessagesPage/" element={<MessagesPage/>} />
+          <Route path="/Page/NotificationsPage/" element={<NotificationsPage/>} />
+
         </Routes>
             
             </div>

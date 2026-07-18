@@ -16,7 +16,6 @@ export default function RouteFile() {
     > 
       <BrowserRouter>
         <SideBar />
-        {/* We wrap MotherScreen in a container that grabs all remaining space */}
         <div style={{ flex: 1, overflowY: 'auto', height: '100%' }}>
           <MotherScreen />
         </div>
