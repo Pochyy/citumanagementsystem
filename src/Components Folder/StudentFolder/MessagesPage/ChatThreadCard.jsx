@@ -5,6 +5,8 @@ import React from 'react';
 // A single contact row inside the sidebar list: avatar badge, name, last
 // message snippet, timestamp/day, and an optional unread-count badge.
 //
+// Kept as a SEPARATE file - imported by ChatSidebar inside MessagesPage.jsx.
+//
 // Props (all should eventually come from the database via MessagesPage/
 // ChatSidebar):
 //   - thread: {

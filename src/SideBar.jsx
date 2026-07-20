@@ -42,6 +42,8 @@ export default function SideBar({ role }) {
       <Link to="/Page/MessagesPage/">Messages Page </Link>
       <br />
       <Link to="/Page/NotificationsPage/">Notifications Page </Link>
+      <br />
+      <Link to="/Page/RequirementsPage/">Requirements Page </Link>
 
 
       {links.map((link) => (

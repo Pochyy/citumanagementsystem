@@ -8,6 +8,7 @@ import Attendancepage from "../Components Folder/StudentFolder/AttendancePage/At
 import Announcementspage from "../Components Folder/StudentFolder/AnnouncementPage/Announcementpage";
 import MessagesPage from "../Components Folder/StudentFolder/MessagesPage/MessagesPage";
 import NotificationsPage from "../Components Folder/StudentFolder/NotificationPage/NotificationsPage";
+import RequirementsPage from "../Components Folder/StudentFolder/RequirementPage/RequirementsPage";
 
 
 import Logo from "./logo.png";
@@ -264,6 +265,7 @@ export default function MotherScreen() {
           <Route path="/Page/AnnouncementPage/" element={<Announcementspage/>} />
           <Route path="/Page/MessagesPage/" element={<MessagesPage/>} />
           <Route path="/Page/NotificationsPage/" element={<NotificationsPage/>} />
+          <Route path="/Page/RequirementsPage/" element={<RequirementsPage/>} />
 
         </Routes>
             

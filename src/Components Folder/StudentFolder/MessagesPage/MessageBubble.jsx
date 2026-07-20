@@ -5,6 +5,8 @@ import React from 'react';
 // Renders a single message bubble - either a "received" (gray, left-aligned)
 // or "sent" (maroon, right-aligned) bubble depending on the message's sender.
 //
+// Kept as a SEPARATE file - imported by ChatWindow inside MessagesPage.jsx.
+//
 // Props:
 //   - message: {
 //       messageId       -> MESSAGE.MessageID (PK) - use as the .map() key upstream
