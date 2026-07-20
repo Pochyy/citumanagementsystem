@@ -233,7 +233,7 @@ export default function MotherScreen() {
         */}
         </div>
 
-        <div
+<div
           className="main-content"
           style={{
             width: "80%",
