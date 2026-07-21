@@ -1,436 +1,363 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+const API = "http://localhost:8080/api/company";
+
+const fields = [
+  ["Company Name", "companyName"],
+  ["Tagline", "tagline"],
+  ["Industry", "industry"],
+  ["Company Size", "companySize"],
+  ["Email", "email"],
+  ["Website", "website"],
+  ["Phone", "phone"]
+];
+
 const initialForm = {
-  name: "TechCorp Inc.",
-  tagline: "Technology - Manila",
-  industry: "Information Technology",
-  email: "hr@techcorp.ph",
-  companySize: "201-500 employees",
-  website: "www.techcorp.ph",
-  contact: "+63 2 8888 0000",
-  about:
-    "TechCorp provides enterprise software solution and consulting services across Southeast Asia, helping businesses transform through technology",
-  address: "24F Ayala Tower One Ayala Ave, Makati City Metro Manila, 1226",
+  id: null,
+  companyName: "",
+  tagline: "",
+  industry: "",
+  email: "",
+  companySize: "",
+  website: "",
+  phone: "",
+  about: "",
+  address: ""
 };
 
-export default function EditProfile({ onSave }) {
+export default function EditProfile() {
+
   const navigate = useNavigate();
+
   const [form, setForm] = useState(initialForm);
+  const [loading, setLoading] = useState(true);
 
-  const handleChange = (field) => (e) => {
-    setForm((prev) => ({ ...prev, [field]: e.target.value }));
+  useEffect(() => {
+
+    loadCompany();
+
+  }, []);
+
+  const loadCompany = async () => {
+
+    try {
+
+      const res = await fetch(API);
+
+      const data = await res.json();
+
+      setForm({
+        id: data.id,
+        companyName: data.companyName || "",
+        tagline: data.tagline || "",
+        industry: data.industry || "",
+        email: data.email || "",
+        companySize: data.companySize || "",
+        website: data.website || "",
+        phone: data.phone || "",
+        about: data.about || "",
+        address: data.address || ""
+      });
+
+    } catch (err) {
+
+      console.error(err);
+
+    } finally {
+
+      setLoading(false);
+
+    }
+
   };
 
-  const handleCancel = () => navigate("/component-1");
+  const changeField = (key) => (e) => {
 
-  const handleSubmit = (e) => {
+    setForm(prev => ({
+      ...prev,
+      [key]: e.target.value
+    }));
+
+  };
+
+  const saveProfile = async (e) => {
+
     e.preventDefault();
-    if (onSave) onSave(form);
-    navigate("/component-1");
+
+    try {
+
+      const res = await fetch(API, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(form)
+      });
+
+      if (!res.ok) {
+        throw new Error("Update failed");
+      }
+
+      alert("Company profile updated!");
+
+      navigate("/component-1");
+
+    } catch (err) {
+
+      console.error(err);
+      alert("Failed to update profile");
+
+    }
+
   };
+
+  if (loading) {
+    return <p>Loading...</p>;
+  }
 
   return (
-    <>
+    <div className="edit-profile">
+
       <style>{`
-        .edit-profile {
-          --maroon: #7a2331;
-          --maroon-dark: #5f1b26;
-          --maroon-soft: #fbeced;
-          --ink: #14151a;
-          --ink-soft: #6b7280;
-          --ink-faint: #9aa0aa;
-          --border: #e2e4e8;
-          --surface-alt: #fafafb;
 
-          width: 100%;
-          height: 100%;
-          max-width: none;
-          margin: 0;
-          box-sizing: border-box;
-          font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-          color: var(--ink);
+      .edit-profile{
+          width:100%;
+          height:100%;
+          padding:30px;
+          background:#f4f6fb;
+          box-sizing:border-box;
+          overflow:auto;
+          font-family:'Segoe UI',sans-serif;
+      }
+
+      .back{
+          background:white;
+          border:1px solid #ddd;
+          border-radius:10px;
+          padding:12px 22px;
+          font-weight:600;
+          cursor:pointer;
+          margin-bottom:20px;
+          transition:.3s;
+      }
+
+      .back:hover{
+          background:#f3f3f3;
+      }
+
+      .card{
+          background:white;
+          border-radius:20px;
+          padding:35px;
+          box-shadow:0 12px 30px rgba(0,0,0,.08);
+      }
+
+    h1{
+        margin:0;
+        color:#7B1113;
+        font-size:32px;
+        font-weight:700;
+    }
+
+    .subtitle{
+        margin-top:8px;
+        margin-bottom:30px;
+        color:#777;
+        font-size:15px;
+    }
+
+    .grid{
+        display:grid;
+        grid-template-columns:repeat(2,1fr);
+        gap:22px;
+    }
+
+    .field{
+        display:flex;
+        flex-direction:column;
+    }
+
+    .field label{
+        margin-bottom:8px;
+        font-size:14px;
+        color:#555;
+        font-weight:600;
+    }
+
+    .full{
+        grid-column:1/-1;
+    }
+
+    input,
+    textarea{
+        width:100%;
+        padding:14px 16px;
+        border:1px solid #d9d9d9;
+        border-radius:12px;
+        background:#fafafa;
+        font-size:15px;
+        transition:.3s;
+        box-sizing:border-box;
+    }
+
+    input:focus,
+    textarea:focus{
+        outline:none;
+        border-color:#7B1113;
+        background:white;
+        box-shadow:0 0 0 4px rgba(123,17,19,.12);
+    }
+
+    textarea{
+        min-height:140px;
+        resize:vertical;
+    }
+
+    .actions{
+        display:flex;
+        justify-content:flex-end;
+        gap:15px;
+        margin-top:35px;
+    }
+
+    button{
+        padding:13px 28px;
+        border-radius:12px;
+        font-size:15px;
+        font-weight:600;
+        cursor:pointer;
+        transition:.3s;
+    }
+
+    .cancel{
+        background:white;
+        border:1px solid #d0d0d0;
+    }
+
+    .cancel:hover{
+        background:#f3f3f3;
+    }
+
+    .save{
+        background:#7B1113;
+        color:white;
+        border:none;
+    }
+
+    .save:hover{
+        background:#991518;
+        transform:translateY(-2px);
+        box-shadow:0 10px 20px rgba(123,17,19,.25);
+    }
+
+    @media(max-width:900px){
+
+        .grid{
+            grid-template-columns:1fr;
         }
 
-        .edit-profile__back {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          margin-bottom: 20px;
-          padding: 9px 16px;
-          border-radius: 999px;
-          border: 1px solid var(--border);
-          background: #fff;
-          color: var(--ink);
-          font-size: 0.85rem;
-          font-weight: 600;
-          cursor: pointer;
-          transition: background 0.15s ease, border-color 0.15s ease;
+        .actions{
+            flex-direction:column;
         }
 
-        .edit-profile__back:hover {
-          background: var(--surface-alt);
-          border-color: #d3d6db;
+        .actions button{
+            width:100%;
         }
 
-        .edit-profile__back svg {
-          width: 15px;
-          height: 15px;
-        }
+    }
 
-        .edit-profile__card {
-          background: #ffffff;
-          border: 1px solid var(--border);
-          border-radius: 16px;
-          box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 12px 24px -8px rgba(16, 24, 40, 0.06);
-          padding: 28px 32px 24px;
-        }
-
-        .edit-profile__title {
-          margin: 0 0 4px;
-          font-size: 1.25rem;
-          font-weight: 700;
-          color: var(--maroon);
-          letter-spacing: -0.01em;
-        }
-
-        .edit-profile__subtitle {
-          margin: 0 0 24px;
-          font-size: 0.85rem;
-          color: var(--ink-soft);
-        }
-
-        .edit-profile__avatar-row {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          margin-bottom: 24px;
-        }
-
-        .edit-profile__avatar {
-          flex-shrink: 0;
-          width: 72px;
-          height: 72px;
-          border-radius: 50%;
-          border: 2px solid #111;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: #fff;
-        }
-
-        .edit-profile__avatar-btn {
-          padding: 9px 16px;
-          border-radius: 9px;
-          border: 1.5px solid var(--ink);
-          background: #fff;
-          color: var(--ink);
-          font-size: 0.83rem;
-          font-weight: 600;
-          cursor: pointer;
-        }
-
-        .edit-profile__avatar-btn:hover {
-          background: var(--surface-alt);
-        }
-
-        .edit-profile__grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 20px 24px;
-          margin-bottom: 20px;
-        }
-
-        .edit-profile__field {
-          display: flex;
-          flex-direction: column;
-        }
-
-        .edit-profile__field--full {
-          grid-column: 1 / -1;
-        }
-
-        .edit-profile__label {
-          margin-bottom: 8px;
-          font-size: 0.85rem;
-          font-weight: 600;
-          color: var(--ink);
-        }
-
-        .edit-profile__input,
-        .edit-profile__textarea {
-          width: 100%;
-          box-sizing: border-box;
-          padding: 10px 14px;
-          border-radius: 9px;
-          border: 1px solid var(--border);
-          background: #fff;
-          font-family: inherit;
-          font-size: 0.875rem;
-          color: var(--ink);
-          transition: border-color 0.15s ease, box-shadow 0.15s ease;
-        }
-
-        .edit-profile__input::placeholder,
-        .edit-profile__textarea::placeholder {
-          color: var(--ink-faint);
-        }
-
-        .edit-profile__input:focus,
-        .edit-profile__textarea:focus {
-          outline: none;
-          border-color: var(--maroon);
-          box-shadow: 0 0 0 3px var(--maroon-soft);
-        }
-
-        .edit-profile__textarea {
-          resize: vertical;
-          min-height: 90px;
-          line-height: 1.5;
-        }
-
-        .edit-profile__footer {
-          display: flex;
-          justify-content: flex-end;
-          gap: 12px;
-          margin-top: 8px;
-          padding-top: 20px;
-          border-top: 1px solid var(--border);
-        }
-
-        .edit-profile__btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          padding: 10px 20px;
-          border-radius: 10px;
-          font-size: 0.875rem;
-          font-weight: 600;
-          cursor: pointer;
-          border: 1px solid transparent;
-          transition: background 0.15s ease, transform 0.15s ease;
-        }
-
-        .edit-profile__btn:active {
-          transform: translateY(1px);
-        }
-
-        .edit-profile__btn--cancel {
-          background: #fff;
-          border-color: var(--border);
-          color: var(--ink);
-        }
-
-        .edit-profile__btn--cancel:hover {
-          background: var(--surface-alt);
-        }
-
-        .edit-profile__btn--save {
-          background: var(--maroon);
-          color: #fff;
-          box-shadow: 0 1px 2px rgba(122, 35, 49, 0.25);
-        }
-
-        .edit-profile__btn--save:hover {
-          background: var(--maroon-dark);
-        }
-
-        .edit-profile__btn svg {
-          width: 16px;
-          height: 16px;
-        }
-
-        @media (max-width: 640px) {
-          .edit-profile__grid {
-            grid-template-columns: 1fr;
-          }
-
-          .edit-profile__card {
-            padding: 22px 18px 20px;
-          }
-
-          .edit-profile__footer {
-            flex-direction: column-reverse;
-          }
-
-          .edit-profile__btn {
-            justify-content: center;
-            width: 100%;
-          }
-        }
       `}</style>
 
-      <div className="edit-profile">
-        <button className="edit-profile__back" type="button" onClick={handleCancel}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M19 12H5M12 19l-7-7 7-7" />
-          </svg>
-          Back to profile
-        </button>
+      <button
+        className="back"
+        onClick={() => navigate("/component-1")}
+      >
+        ← Back to Profile
+      </button>
 
-        <form className="edit-profile__card" onSubmit={handleSubmit}>
-          <h1 className="edit-profile__title">Edit profile</h1>
-          <p className="edit-profile__subtitle">
-            Update your company details. Changes will appear on your public profile.
-          </p>
+      <form
+        className="card"
+        onSubmit={saveProfile}
+      >
 
-          <div className="edit-profile__avatar-row">
-            <div className="edit-profile__avatar" aria-hidden="true">
-              <svg viewBox="0 0 100 100" width="40" height="40">
-                <circle cx="50" cy="35" r="18" fill="none" stroke="#111" strokeWidth="3" />
-                <path
-                  d="M20 90c2-22 18-32 30-32s28 10 30 32"
-                  fill="none"
-                  stroke="#111"
-                  strokeWidth="3"
-                />
-              </svg>
-            </div>
-            <button className="edit-profile__avatar-btn" type="button">
-              Change logo
-            </button>
+        <h1>Edit Company Profile</h1>
+
+        <p className="subtitle">
+          Update your company information.
+        </p>
+
+        <div className="grid">
+
+          {fields.map(([label, key]) => (
+
+            <Field
+              key={key}
+              label={label}
+              value={form[key]}
+              onChange={changeField(key)}
+            />
+
+          ))}
+
+          <Field
+            full
+            label="Address"
+            value={form.address}
+            onChange={changeField("address")}
+          />
+
+          <div className="field full">
+
+            <label>About</label>
+
+            <textarea
+              value={form.about}
+              onChange={changeField("about")}
+            />
+
           </div>
 
-          <div className="edit-profile__grid">
-            <div className="edit-profile__field">
-              <label className="edit-profile__label" htmlFor="name">
-                Company name
-              </label>
-              <input
-                id="name"
-                className="edit-profile__input"
-                type="text"
-                value={form.name}
-                onChange={handleChange("name")}
-              />
-            </div>
+        </div>
 
-            <div className="edit-profile__field">
-              <label className="edit-profile__label" htmlFor="tagline">
-                Tagline
-              </label>
-              <input
-                id="tagline"
-                className="edit-profile__input"
-                type="text"
-                placeholder="e.g. Technology - Manila"
-                value={form.tagline}
-                onChange={handleChange("tagline")}
-              />
-            </div>
+        <div className="actions">
 
-            <div className="edit-profile__field">
-              <label className="edit-profile__label" htmlFor="industry">
-                Industry
-              </label>
-              <input
-                id="industry"
-                className="edit-profile__input"
-                type="text"
-                value={form.industry}
-                onChange={handleChange("industry")}
-              />
-            </div>
+          <button
+            type="button"
+            className="cancel"
+            onClick={() => navigate("/component-1")}
+          >
+            Cancel
+          </button>
 
-            <div className="edit-profile__field">
-              <label className="edit-profile__label" htmlFor="companySize">
-                Company size
-              </label>
-              <input
-                id="companySize"
-                className="edit-profile__input"
-                type="text"
-                placeholder="e.g. 201-500 employees"
-                value={form.companySize}
-                onChange={handleChange("companySize")}
-              />
-            </div>
+          <button
+            type="submit"
+            className="save"
+          >
+            Save Changes
+          </button>
 
-            <div className="edit-profile__field">
-              <label className="edit-profile__label" htmlFor="email">
-                Email
-              </label>
-              <input
-                id="email"
-                className="edit-profile__input"
-                type="email"
-                value={form.email}
-                onChange={handleChange("email")}
-              />
-            </div>
+        </div>
 
-            <div className="edit-profile__field">
-              <label className="edit-profile__label" htmlFor="website">
-                Website
-              </label>
-              <input
-                id="website"
-                className="edit-profile__input"
-                type="text"
-                placeholder="e.g. www.techcorp.ph"
-                value={form.website}
-                onChange={handleChange("website")}
-              />
-            </div>
+      </form>
 
-            <div className="edit-profile__field">
-              <label className="edit-profile__label" htmlFor="contact">
-                Contact
-              </label>
-              <input
-                id="contact"
-                className="edit-profile__input"
-                type="text"
-                value={form.contact}
-                onChange={handleChange("contact")}
-              />
-            </div>
-
-            <div className="edit-profile__field edit-profile__field--full">
-              <label className="edit-profile__label" htmlFor="address">
-                Address
-              </label>
-              <input
-                id="address"
-                className="edit-profile__input"
-                type="text"
-                value={form.address}
-                onChange={handleChange("address")}
-              />
-            </div>
-
-            <div className="edit-profile__field edit-profile__field--full">
-              <label className="edit-profile__label" htmlFor="about">
-                About
-              </label>
-              <textarea
-                id="about"
-                className="edit-profile__textarea"
-                value={form.about}
-                onChange={handleChange("about")}
-              />
-            </div>
-          </div>
-
-          <div className="edit-profile__footer">
-            <button
-              type="button"
-              className="edit-profile__btn edit-profile__btn--cancel"
-              onClick={handleCancel}
-            >
-              Cancel
-            </button>
-            <button type="submit" className="edit-profile__btn edit-profile__btn--save">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z" />
-                <polyline points="17 21 17 13 7 13 7 21" />
-                <polyline points="7 3 7 8 15 8" />
-              </svg>
-              Save changes
-            </button>
-          </div>
-        </form>
-      </div>
-    </>
+    </div>
   );
 }
+
+    function Field({ label, value, onChange, full }) {
+
+      return (
+        <div className={`field ${full ? "full" : ""}`}>
+
+          <label>{label}</label>
+
+          <input
+            value={value}
+            onChange={onChange}
+          />
+
+        </div>
+      );
+
+    }

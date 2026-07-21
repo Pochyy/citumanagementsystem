@@ -5,19 +5,25 @@ import OpportunitiesPage from "./Components Folder/StudentFolder/OpportunitiesPa
 import MyInternshipsPage from "./Components Folder/StudentFolder/MyInternshipsPage/Myinternshipspage";
 import Companyprofile from "./Components Folder/Company/Companyprofile";
 import EditProfile from "./Components Folder/Company/EditProfile";
-import VerificationStatus from "./Components Folder/Company/VerificationStatus";
-import InternshipListing from "./Components Folder/Company/InternshipListings";
-import CreateInternship from "./Components Folder/Company/CreateInternship";
-import ApplicationList from "./Components Folder/Company/ApplicationList";
-import ApplicantDetails from "./Components Folder/Company/ApplicantDetails";
-import Shortlisted from "./Components Folder/Company/Shortlisted";
-import SlotManagement from "./Components Folder/Company/SlotManagement";
-import Certificates from "./Components Folder/Company/Certificates";
-import Messages from "./Components Folder/Company/Messages";
-import Notifications from "./Components Folder/Company/Notifications";
-import NotificationDetails from "./Components Folder/Company/NotificationDetails";
-import LoginScreen from "./Components Folder/StudentFolder/LoginAndLogoutPage/Login";
-import RegisterScreen from "./Components Folder/StudentFolder/LoginAndLogoutPage/Logout";
+
+import VerificationStatus from "./Components Folder/Company/Verification/VerificationStatus";
+
+import InternshipListing from "./Components Folder/Company/Internship/InternshipListings";
+import CreateInternship from "./Components Folder/Company/Internship/CreateInternship";
+
+import ApplicationList from "./Components Folder/Company/Application/ApplicationList";
+import ApplicantDetails from "./Components Folder/Company/Application/ApplicantDetails";
+
+import Shortlisted from "./Components Folder/Company/Shorlisted/Shortlisted";
+
+import SlotManagement from "./Components Folder/Company/SlotManagement/SlotManagement";
+
+import Certificates from "./Components Folder/Company/Certificates/Certificates";
+
+import Messages from "./Components Folder/Company/Messages/Messages";
+
+import Notifications from "./Components Folder/Company/Notification/Notifications";
+import NotificationDetails from "./Components Folder/Company/Notification/NotificationDetails";
 
 
 

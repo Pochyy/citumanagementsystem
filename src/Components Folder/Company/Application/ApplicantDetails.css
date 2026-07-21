@@ -1,0 +1,325 @@
+.applicant-details {
+
+    width:100%;
+
+    min-height:100vh;
+
+    padding:40px;
+
+    background:#fafafa;
+
+    font-family:"Inter", Arial, sans-serif;
+
+    color:#14151a;
+
+}
+
+
+
+/* BACK BUTTON */
+
+.applicant-details__back {
+
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+
+    padding:12px 20px;
+
+
+    border-radius:25px;
+
+
+    border:1px solid #e5e7eb;
+
+
+    background:white;
+
+
+    cursor:pointer;
+
+
+    font-weight:600;
+
+
+    margin-bottom:30px;
+
+
+}
+
+
+
+.applicant-details__back svg {
+
+    width:20px;
+
+    height:20px;
+
+}
+
+
+
+/* CARD */
+
+.applicant-details__card {
+
+
+    width:100%;
+
+
+    max-width:1000px;
+
+
+    background:white;
+
+
+    border:1px solid #e8e9ec;
+
+
+    border-radius:20px;
+
+
+    padding:45px;
+
+
+
+    box-shadow:
+
+    0 15px 35px rgba(0,0,0,0.08);
+
+
+}
+
+
+
+/* HEADER */
+
+.applicant-details__header {
+
+
+    display:flex;
+
+    align-items:center;
+
+    gap:25px;
+
+
+    margin-bottom:35px;
+
+
+}
+
+
+
+.applicant-details__icon {
+
+
+    width:70px;
+
+
+    height:70px;
+
+
+    display:flex;
+
+
+    justify-content:center;
+
+
+    align-items:center;
+
+
+    border-radius:18px;
+
+
+    background:#eef2ff;
+
+
+    color:#4338ca;
+
+
+}
+
+
+
+.applicant-details__icon svg {
+
+
+    width:35px;
+
+
+    height:35px;
+
+
+}
+
+
+
+
+.applicant-details__header h1 {
+
+
+    margin:0;
+
+
+    font-size:28px;
+
+
+    font-weight:700;
+
+
+}
+
+
+
+.applicant-details__header p {
+
+
+    margin-top:10px;
+
+
+    color:#9ca3af;
+
+
+    font-size:16px;
+
+
+}
+
+
+
+/* CONTENT BOX */
+
+.applicant-details__content {
+
+
+    background:#fafafa;
+
+
+    border:1px solid #e5e7eb;
+
+
+    border-radius:16px;
+
+
+    padding:30px;
+
+
+}
+
+
+
+
+.info-group {
+
+
+    display:flex;
+
+
+    justify-content:space-between;
+
+
+    align-items:center;
+
+
+    padding:18px 0;
+
+
+    border-bottom:1px solid #eeeeee;
+
+
+}
+
+
+
+.info-group:last-child {
+
+    border-bottom:none;
+
+}
+
+
+
+.info-group label {
+
+
+    color:#6b7280;
+
+
+    font-size:15px;
+
+
+}
+
+
+
+.info-group span {
+
+
+    font-weight:600;
+
+
+    color:#14151a;
+
+
+}
+
+
+
+.status {
+
+
+    color:#067647 !important;
+
+
+    background:#ecfdf3;
+
+
+    padding:6px 14px;
+
+
+    border-radius:20px;
+
+
+    font-size:14px;
+
+
+}
+
+
+
+/* NOT FOUND */
+
+.applicant-details-notfound {
+
+
+    padding:50px;
+
+    text-align:center;
+
+}
+
+
+
+.applicant-details-notfound button {
+
+
+    margin-top:20px;
+
+    padding:12px 25px;
+
+    border:none;
+
+    border-radius:10px;
+
+    background:#7a2331;
+
+    color:white;
+
+    cursor:pointer;
+
+}

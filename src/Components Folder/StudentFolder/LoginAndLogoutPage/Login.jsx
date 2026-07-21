@@ -3,10 +3,8 @@ import Logo from "../../../MotherScreen/logo.png";
 
 // ============================================================
 // Reusable style objects
-// Declared at the top to keep the JSX below clean and readable.
 // ============================================================
 const styles = {
-  // ---------------- Header (kept consistent with the rest of the app) ----------------
   globalHeader: {
     width: "100%",
     height: "120px",
@@ -37,7 +35,6 @@ const styles = {
     whiteSpace: "nowrap",
   },
 
-  // ---------------- Body / gradient background ----------------
   mainContent: {
     width: "100%",
     height: "calc(100vh - 120px)",
@@ -49,7 +46,6 @@ const styles = {
     padding: "20px",
   },
 
-  // ---------------- Login card ----------------
   cardOuter: {
     position: "relative",
     width: "100%",
@@ -133,7 +129,6 @@ const styles = {
     boxSizing: "border-box",
     outline: "none",
   },
-  // Placeholder for an inline error/validation message.
   errorText: {
     color: "#B23F41",
     fontSize: "12px",
@@ -154,6 +149,10 @@ const styles = {
     fontSize: "14px",
     fontWeight: 700,
     cursor: "pointer",
+  },
+  loginButtonDisabled: {
+    opacity: 0.6,
+    cursor: "not-allowed",
   },
   registerButton: {
     flex: 1,
@@ -181,39 +180,64 @@ const styles = {
   },
 };
 
-export default function LoginScreen() {
-  // ------------------------------------------------------------
-  // Local UI state only (controlled inputs for the form fields).
-  // Actual authentication logic will be wired up later.
-  // ------------------------------------------------------------
+// Change this if your backend runs somewhere else, or swap for a relative
+// "/api/auth/login" if you set up a CRA proxy in package.json.
+const LOGIN_ENDPOINT = "http://localhost:8080/api/auth/login";
+
+export default function LoginScreen({ navigate }) {
   const [loginValue, setLoginValue] = useState("");
   const [passwordValue, setPasswordValue] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loginError, setLoginError] = useState(null);
 
-  // Future functionality: track a loading state while the login request is in flight
-  // const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Future functionality: track and display an error message if login fails
-  // const [loginError, setLoginError] = useState(null);
-
-  // Future functionality: handle form submission
-  // This should call the authentication API/backend with { loginValue, passwordValue }
-  const handleLoginSubmit = (event) => {
+  const handleLoginSubmit = async (event) => {
     event.preventDefault();
-    // Future functionality:
-    // 1. setIsSubmitting(true)
-    // 2. Call the login API/database endpoint with { loginValue, passwordValue }
-    // 3. On success -> store auth token/session and redirect (e.g. navigate("/dashboard"))
-    // 4. On failure -> setLoginError("Invalid credentials") and setIsSubmitting(false)
+    setLoginError(null);
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(LOGIN_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ login: loginValue, password: passwordValue }),
+      });
+
+      if (!response.ok) {
+        // AuthService throws 401 for bad credentials, 403 for suspended/inactive
+        const message =
+          response.status === 401
+            ? "Invalid login or password."
+            : "Something went wrong logging you in. Please try again.";
+        throw new Error(message);
+      }
+
+      const user = await response.json(); // UserResponse: userId, firstName, lastName, email, role, status, dateCreated
+
+      // Stash identity for the rest of the app (e.g. CompanyProfile.jsx reads userId).
+      localStorage.setItem("userId", user.userId);
+      localStorage.setItem("role", user.role);
+
+      // Route by role. Swap these paths for whatever your router actually uses.
+      if (user.role === "STUDENT") {
+        navigate ? navigate("/student/dashboard") : (window.location.href = "/student/dashboard");
+      } else if (user.role === "COMPANY") {
+        navigate ? navigate("/company/dashboard") : (window.location.href = "/company/dashboard");
+      } else if (user.role === "COORDINATOR") {
+        navigate ? navigate("/coordinator/dashboard") : (window.location.href = "/coordinator/dashboard");
+      }
+    } catch (err) {
+      setLoginError(err.message || "Something went wrong logging you in.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  // Future functionality: navigate to the Register screen
   const handleRegisterClick = () => {
-    // Future functionality: navigate("/register")
+    navigate ? navigate("/register") : (window.location.href = "/register");
   };
 
-  // Future functionality: navigate to the Sign Up screen from the bottom link
   const handleSignUpLinkClick = () => {
-    // Future functionality: navigate("/register")
+    navigate ? navigate("/register") : (window.location.href = "/register");
   };
 
   return (
@@ -232,19 +256,15 @@ export default function LoginScreen() {
       <div className="main-content" style={styles.mainContent}>
         {/* ================= LOGIN CARD ================= */}
         <div className="login-card" style={styles.cardOuter}>
-          {/* ---------- Floating logo badge ---------- */}
           <div style={styles.logoCircle}>
             <img src={Logo} alt="CIT University" style={styles.logoImage} />
           </div>
 
-          {/* ---------- Welcome text ---------- */}
           <div style={styles.welcomeRow}>
             <h1 style={styles.welcomeTitle}>Welcome Back!</h1>
-            {/* Database: could later show a dynamic subtitle/announcement fetched from the backend */}
             <div style={styles.welcomeSubtitle}>words words words words</div>
           </div>
 
-          {/* ---------- Login form card ---------- */}
           <form style={styles.whiteBox} onSubmit={handleLoginSubmit}>
             {/* Login field */}
             <div style={styles.fieldGroup}>
@@ -254,8 +274,7 @@ export default function LoginScreen() {
                 style={styles.input}
                 value={loginValue}
                 onChange={(e) => setLoginValue(e.target.value)}
-                // Database: this value will be submitted as the username/email/student ID
-                // used to look up the account in the backend/database
+                placeholder="Student ID or Company Email"
               />
             </div>
 
@@ -267,29 +286,29 @@ export default function LoginScreen() {
                 style={styles.input}
                 value={passwordValue}
                 onChange={(e) => setPasswordValue(e.target.value)}
-                // Database: this value will be submitted (securely, e.g. hashed) to the
-                // authentication endpoint for verification against the stored credentials
               />
             </div>
 
-            {/* Future functionality: render this only when loginError is set
-            {loginError && <div style={styles.errorText}>{loginError}</div>} */}
+            {loginError && <div style={styles.errorText}>{loginError}</div>}
 
             {/* ---------- Action buttons ---------- */}
             <div style={styles.buttonsRow}>
-              {/* Future functionality: submits the form -> calls the login API/database */}
-              <button type="submit" style={styles.loginButton}>
-                {/* Future functionality: show "Logging In..." while isSubmitting is true */}
-                Log In
+              <button
+                type="submit"
+                style={{
+                  ...styles.loginButton,
+                  ...(isSubmitting ? styles.loginButtonDisabled : {}),
+                }}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Logging In..." : "Log In"}
               </button>
 
-              {/* Future functionality: navigates to the Register screen */}
               <button type="button" style={styles.registerButton} onClick={handleRegisterClick}>
                 Register
               </button>
             </div>
 
-            {/* ---------- Sign up link ---------- */}
             <div style={styles.signupTextRow}>
               <span style={styles.signupText}>Don't have an account yet? </span>
               <span style={styles.signupLink} onClick={handleSignUpLinkClick}>
