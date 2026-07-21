@@ -18,27 +18,20 @@ export default function SideBar() {
       <Link to="/Page/MotherScreen">Mother Screen</Link>
 
       <h1>Component Links </h1>
-
-      <Link to="/Page/StudentProfile/ProfilePage">Student Profile Page </Link>
+      <Link to="/Page/LoginScreen">Login Screen</Link>
       <br />
-      <Link to="/Page/InternshipOpportunities/Opportunities">Opportunities Page </Link>
+      <Link to="/Page/RegisterScreen">Register Screen</Link>
       <br />
-      <Link to="/Page/MyInternships/">My Internships </Link>
-      <br />
-      <Link to="/Page/LoginScreen/">Login Screen </Link>
-      <br />
-      <Link to="/Page/RegisterScreen/">Register Screen </Link>
-
-      <Link to="/component-1">Component 1 - CompanyProfile </Link><br/>
-      <Link to="/component-2">Component 2 - VerificationsStatus</Link><br />
-      <Link to="/component-3">Component 3 - Internships Listings</Link><br /> 
-      <Link to="/component-4">Component 4 - Application List</Link><br />
-      <Link to="/component-5">Component 5 - Shortlisted</Link><br />
-      <Link to="/component-6">Component 6 - Slot Management</Link><br />
-      <Link to="/component-7">Component 7 - Certificates</Link><br />
-      <Link to="/component-8">Component 8 - Messages</Link><br />
-      <Link to="/component-9">Component 9 - Notifications</Link><br />
-
+      <Link to="/component-1">CompanyProfile </Link><br/>
+      <Link to="/component-2">VerificationsStatus</Link><br />
+      <Link to="/component-3">Internships Listings</Link><br /> 
+      <Link to="/component-4">Application List</Link><br />
+      <Link to="/component-5">Shortlisted</Link><br />
+      <Link to="/component-6">Slot Management</Link><br />
+      <Link to="/component-7">Certificates</Link><br />
+      <Link to="/component-8">Messages</Link><br />
+      <Link to="/component-9">Notifications</Link><br />
+      <Link to="/component-10">Profile Page</Link><br />
 
     </div>
 

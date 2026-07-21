@@ -1,199 +1,173 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
 
-const company = {
-  name: "TechCorp Inc.",
-  tagline: "Technology - Manila",
-  industry: "Information Technology",
-  email: "www.techcorp.ph",
-  companySize: "201-500 employees",
-  website: "hr@techcorp.ph",
-  contact: "+63 2 8888 0000",
-  about:
-    "TechCorp provides enterprise software solution and consulting services across Southeast Asia, helping businesses transform through technology",
-  address: "24F Ayala Tower One Ayala Ave, Makati City Metro Manila, 1226",
-  stats: {
-    activeInternships: 4,
-    totalApplicants: 6,
-    slotsRemaining: 7,
-  },
+const API_BASE = "http://localhost:8080/api/company";
+
+// Field metadata: key on the Company entity, label, and whether it's a textarea.
+// (kept from the edit-form version so every backend field is editable)
+const profileFields = [
+  { key: "companyName", label: "Company Name" },
+  { key: "tagline", label: "Tagline" },
+  { key: "industry", label: "Industry" },
+  { key: "companySize", label: "Company Size" },
+  { key: "email", label: "Email" },
+  { key: "website", label: "Website" },
+  { key: "phone", label: "Phone" },
+  { key: "address", label: "Address" },
+  { key: "about", label: "About", isTextArea: true },
+];
+
+const emptyCompany = {
+  id: null,
+  companyName: "",
+  tagline: "",
+  industry: "",
+  companySize: "",
+  email: "",
+  website: "",
+  phone: "",
+  about: "",
+  address: "",
 };
 
-export default function Companyprofile() {
-  const navigate = useNavigate();
+export default function CompanyProfile() {
+  const [company, setCompany] = useState(emptyCompany);
+  const [formValues, setFormValues] = useState(emptyCompany);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
+
+  // Set at Login.jsx on a successful login, e.g. localStorage.setItem("userId", response.userId)
+  const userId = localStorage.getItem("userId");
+
+  useEffect(() => {
+    if (userId) {
+      loadCompany();
+    } else {
+      setIsLoading(false);
+      setErrorMessage("You must be logged in to view this page.");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const loadCompany = async () => {
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    try {
+      const res = await fetch(`${API_BASE}/${userId}`, {
+        credentials: "include", // send the session cookie set at login
+      });
+
+      if (res.status === 403) {
+        throw new Error(
+          "Access denied loading your company profile (403). Your session may have expired - try logging in again."
+        );
+      }
+
+      if (!res.ok) {
+        throw new Error(`Failed to load company profile (server responded ${res.status}).`);
+      }
+
+      // A Company row is created at registration, so this should always
+      // return data - fall back to blank only if something unexpected happens.
+      const text = await res.text();
+      const data = text ? JSON.parse(text) : null;
+      const loaded = data ?? emptyCompany;
+      setCompany(loaded);
+      setFormValues(loaded);
+    } catch (err) {
+      // A TypeError here almost always means the request never reached the
+      // server at all (backend down, wrong port, or blocked by CORS).
+      const message =
+        err instanceof TypeError
+          ? "Couldn't reach the server. Make sure the backend is running and check your CORS/port settings."
+          : err.message || "Something went wrong loading your profile.";
+      setErrorMessage(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleFieldChange = (key, value) => {
+    setFormValues((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleEditClick = () => {
+    setFormValues(company);
+    setSuccessMessage(null);
+    setErrorMessage(null);
+    setIsEditing(true);
+  };
+
+  const handleCancelClick = () => {
+    setFormValues(company);
+    setIsEditing(false);
+    setErrorMessage(null);
+  };
+
+  const handleSaveClick = async () => {
+    if (!userId) {
+      setErrorMessage("You need to be logged in to save your company profile.");
+      return;
+    }
+
+    setIsSaving(true);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    try {
+      // The Company row is created at registration, so this always updates it.
+      const res = await fetch(`${API_BASE}/${userId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include", // send the session cookie set at login
+        body: JSON.stringify(formValues),
+      });
+      if (res.status === 403) {
+        throw new Error(
+          "Access denied saving your company profile (403). Your session may have expired - try logging in again."
+        );
+      }
+      if (!res.ok) {
+        throw new Error(`Failed to save company profile (server responded ${res.status}).`);
+      }
+      const saved = await res.json();
+      setCompany(saved);
+      setFormValues(saved);
+      setIsEditing(false);
+      setSuccessMessage("Profile saved.");
+    } catch (err) {
+      const message =
+        err instanceof TypeError
+          ? "Couldn't reach the server. Make sure the backend is running and check your CORS/port settings."
+          : err.message || "Something went wrong saving your profile.";
+      setErrorMessage(message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <>
+        <style>{baseStyles}</style>
+        <div className="company-profile">
+          <p>Loading...</p>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
-      <style>{`
-        .company-profile {
-          width: 100%;
-          height: 100%;
-          max-width: none;
-          margin: 0;
-          padding: 24px;
-          background: #ffffff;
-          border: 1px solid #e5e7eb;
-          border-radius: 18px;
-          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-          color: #1f2937;
-          box-sizing: border-box;
-          overflow-y: auto;
-        }
-
-        .company-profile__header {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          margin-bottom: 24px;
-        }
-
-        .company-profile__avatar {
-          flex-shrink: 0;
-          width: 72px;
-          height: 72px;
-          border-radius: 50%;
-          border: 2px solid #111;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: #fff;
-        }
-
-        .company-profile__title {
-          flex: 1;
-        }
-
-        .company-profile__title h1 {
-          margin: 0;
-          font-size: 1.6rem;
-          font-weight: 700;
-          color: #111;
-        }
-
-        .company-profile__title p {
-          margin: 2px 0 0;
-          color: #6b7280;
-          font-weight: 500;
-        }
-
-        .company-profile__edit-btn {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          padding: 8px 16px;
-          border-radius: 999px;
-          border: 1.5px solid #111;
-          background: #fff;
-          color: #111;
-          font-size: 0.9rem;
-          cursor: pointer;
-        }
-
-        .company-profile__edit-btn:hover {
-          background: #f5f5f5;
-        }
-
-        .company-profile__grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 16px;
-          margin-bottom: 24px;
-        }
-
-        .company-profile__card {
-          border: 1px solid #e5e7eb;
-          border-radius: 12px;
-          padding: 16px;
-          color: #1f2937;
-        }
-
-        .company-profile__card h2 {
-          margin: 0 0 12px;
-          font-size: 1rem;
-          font-weight: 700;
-          color: #111;
-        }
-
-        .company-profile__card dl {
-          margin: 0;
-        }
-
-        .company-profile__card dl > div {
-          margin-bottom: 8px;
-        }
-
-        .company-profile__card dt {
-          font-weight: 700;
-          font-size: 0.85rem;
-          color: #6b7280;
-        }
-
-        .company-profile__card dd {
-          margin: 0;
-          font-size: 0.85rem;
-          color: #1f2937;
-        }
-
-        .company-profile__card dd a {
-          color: #2563eb;
-          text-decoration: none;
-        }
-
-        .company-profile__about,
-        .company-profile__address {
-          margin: 0;
-          font-size: 0.85rem;
-          line-height: 1.5;
-          color: #1f2937;
-        }
-
-        .company-profile__stats {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 16px;
-        }
-
-        .company-profile__stat {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: 6px;
-          padding: 16px;
-          border-radius: 12px;
-          border: 1px solid #e5e7eb;
-          background: #f6c453;
-          text-align: center;
-        }
-
-        .company-profile__stat-label {
-          font-size: 0.75rem;
-          color: #111;
-        }
-
-        .company-profile__stat-value {
-          font-size: 1.5rem;
-          font-weight: 700;
-          color: #111;
-        }
-
-        @media (max-width: 640px) {
-          .company-profile__grid,
-          .company-profile__stats {
-            grid-template-columns: 1fr;
-          }
-
-          .company-profile__header {
-            flex-wrap: wrap;
-          }
-        }
-      `}</style>
+      <style>{baseStyles}</style>
 
       <div className="company-profile">
-        <div className="company-profile__header">
-          <div className="company-profile__avatar" aria-hidden="true">
-            <svg viewBox="0 0 100 100" width="56" height="56">
+        {/* ================= HEADER ================= */}
+        <div className="header">
+          <div className="avatar">
+            <svg viewBox="0 0 100 100" width="55">
               <circle cx="50" cy="35" r="18" fill="none" stroke="#111" strokeWidth="3" />
               <path
                 d="M20 90c2-22 18-32 30-32s28 10 30 32"
@@ -203,70 +177,374 @@ export default function Companyprofile() {
               />
             </svg>
           </div>
-          <div className="company-profile__title">
-            <h1>{company.name}</h1>
-            <p>{company.tagline}</p>
+
+          <div className="title">
+            <h1>{company.companyName || "Set up your company"}</h1>
+            <p>{company.tagline || "Add a tagline to introduce your company"}</p>
           </div>
-          <button
-            className="company-profile__edit-btn"
-            type="button"
-            onClick={() => navigate("/component-1/edit")}
-          >
-            <span aria-hidden="true">✎</span> Edit profile
-          </button>
+
+          {!isEditing ? (
+            <button className="edit-btn" onClick={handleEditClick}>
+              ✎ Edit Profile
+            </button>
+          ) : (
+            <div className="edit-actions">
+              <button className="cancel-btn" onClick={handleCancelClick} disabled={isSaving}>
+                Cancel
+              </button>
+              <button className="save-btn" onClick={handleSaveClick} disabled={isSaving}>
+                {isSaving ? "Saving..." : "Save Changes"}
+              </button>
+            </div>
+          )}
         </div>
-        <div className="company-profile__grid">
-          <section className="company-profile__card">
-            <h2>Company Information</h2>
-            <dl>
-              <div>
-                <dt>Industry</dt>
-                <dd>{company.industry}</dd>
-              </div>
-              <div>
-                <dt>Email</dt>
-                <dd>
-                  <a href={`https://${company.email}`}>{company.email}</a>
-                </dd>
-              </div>
-              <div>
-                <dt>Company size</dt>
-                <dd>{company.companySize}</dd>
-              </div>
-              <div>
-                <dt>Website</dt>
-                <dd>{company.website}</dd>
-              </div>
-              <div>
-                <dt>Contact</dt>
-                <dd>{company.contact}</dd>
-              </div>
-            </dl>
-          </section>
-          <section className="company-profile__card">
-            <h2>About</h2>
-            <p className="company-profile__about">{company.about}</p>
-          </section>
-          <section className="company-profile__card">
-            <h2>Address</h2>
-            <p className="company-profile__address">{company.address}</p>
-          </section>
-        </div>
-        <div className="company-profile__stats">
-          <div className="company-profile__stat">
-            <span className="company-profile__stat-label">Active internships</span>
-            <span className="company-profile__stat-value">{company.stats.activeInternships}</span>
+
+        {(errorMessage || successMessage) && (
+          <div className={`status-banner ${errorMessage ? "status-error" : "status-success"}`}>
+            {errorMessage || successMessage}
           </div>
-          <div className="company-profile__stat">
-            <span className="company-profile__stat-label">Total applicants</span>
-            <span className="company-profile__stat-value">{company.stats.totalApplicants}</span>
-          </div>
-          <div className="company-profile__stat">
-            <span className="company-profile__stat-label">Slots remaining</span>
-            <span className="company-profile__stat-value">{company.stats.slotsRemaining}</span>
-          </div>
-        </div>
+        )}
+
+        {/* ================= BODY ================= */}
+        {isEditing ? (
+          <section className="card">
+            <h2>Edit Company Details</h2>
+            <div className="edit-grid">
+              {profileFields.map((field) => (
+                <div
+                  key={field.key}
+                  className={field.isTextArea ? "field-group field-wide" : "field-group"}
+                >
+                  <label className="field-label" htmlFor={field.key}>
+                    {field.label}
+                  </label>
+                  {field.isTextArea ? (
+                    <textarea
+                      id={field.key}
+                      className="field-textarea"
+                      value={formValues[field.key] || ""}
+                      onChange={(e) => handleFieldChange(field.key, e.target.value)}
+                    />
+                  ) : (
+                    <input
+                      id={field.key}
+                      type="text"
+                      className="field-input"
+                      value={formValues[field.key] || ""}
+                      onChange={(e) => handleFieldChange(field.key, e.target.value)}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        ) : (
+          <>
+            <div className="grid">
+              <section className="card">
+                <h2>Company Information</h2>
+                <Info label="Industry" value={company.industry} />
+                <Info label="Email" value={company.email} />
+                <Info label="Company Size" value={company.companySize} />
+                <Info label="Website" value={company.website} />
+                <Info label="Phone" value={company.phone} />
+              </section>
+
+              <section className="card">
+                <h2>About</h2>
+                <p className="text">{company.about || "-"}</p>
+              </section>
+
+              <section className="card address-card">
+                <h2>Address</h2>
+                <p className="text">{company.address || "-"}</p>
+              </section>
+            </div>
+
+            <div className="stats">
+              <Stat label="Active Internships" value={4} />
+              <Stat label="Total Applicants" value={6} />
+              <Stat label="Slots Remaining" value={7} />
+            </div>
+          </>
+        )}
       </div>
     </>
   );
 }
+
+function Info({ label, value }) {
+  return (
+    <div>
+      <div className="label">{label}</div>
+      <div className="value">{value || "-"}</div>
+    </div>
+  );
+}
+
+function Stat({ label, value }) {
+  return (
+    <div className="stat">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
+  );
+}
+
+const baseStyles = `
+.company-profile{
+    width:100%;
+    height:100%;
+    padding:35px;
+    background:#f5f7fb;
+    border-radius:18px;
+    overflow:auto;
+    box-sizing:border-box;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.header{
+    display:flex;
+    align-items:center;
+    gap:20px;
+    padding:25px;
+    background:white;
+    border-radius:18px;
+    margin-bottom:25px;
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+}
+
+.avatar{
+    width:85px;
+    height:85px;
+    border-radius:50%;
+    background:#fafafa;
+    border:3px solid #8b1d23;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+}
+
+.title{
+  flex:1;
+  min-width:0;
+}
+
+.title h1{
+  margin:0;
+}
+
+.title p{
+  margin-top:5px;
+  color:#666;
+}
+
+.edit-btn{
+    background:#8b1d23;
+    color:white;
+    border:none;
+    padding:12px 24px;
+    border-radius:10px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.3s;
+    white-space:nowrap;
+}
+
+.edit-btn:hover{
+    background:#6e1116;
+}
+
+.edit-actions{
+  display:flex;
+  gap:10px;
+}
+
+.cancel-btn{
+    background:white;
+    color:#8a8a8a;
+    border:2px solid #d8d8d8;
+    padding:10px 22px;
+    border-radius:10px;
+    font-weight:600;
+    cursor:pointer;
+    white-space:nowrap;
+}
+
+.save-btn{
+    background:#8b1d23;
+    color:white;
+    border:2px solid #8b1d23;
+    padding:10px 22px;
+    border-radius:10px;
+    font-weight:600;
+    cursor:pointer;
+    white-space:nowrap;
+}
+
+.save-btn:disabled, .cancel-btn:disabled{
+  opacity:.6;
+  cursor:not-allowed;
+}
+
+.status-banner{
+  padding:14px 20px;
+  border-radius:12px;
+  margin-bottom:20px;
+  font-weight:600;
+  font-size:14px;
+}
+
+.status-error{
+  background:#fdecea;
+  color:#b23f41;
+}
+
+.status-success{
+  background:#e9f7ef;
+  color:#2e9e5b;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:2fr 1fr;
+    gap:20px;
+    margin-top:20px;
+}
+
+.card{
+    background:white;
+    border:none;
+    border-radius:18px;
+    padding:24px;
+    box-shadow:0 8px 18px rgba(0,0,0,.08);
+}
+
+.address-card{
+    grid-column:1 / 3;
+}
+
+.card h2{
+  margin-top:0;
+}
+
+.label{
+    color:#777;
+    font-size:13px;
+    margin-top:15px;
+}
+
+.value{
+    font-size:16px;
+    font-weight:600;
+}
+
+.text{
+  line-height:1.6;
+  white-space: pre-wrap;
+}
+
+.stats{
+  margin-top:20px;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:18px;
+}
+
+.stat{
+    background:white;
+    border-left:6px solid #8b1d23;
+    border-radius:15px;
+    padding:25px;
+    text-align:center;
+    box-shadow:0 6px 18px rgba(0,0,0,.08);
+}
+
+.stat strong{
+    display:block;
+    font-size:40px;
+    color:#8b1d23;
+}
+
+.edit-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:18px;
+  margin-top:10px;
+}
+
+.field-group{
+  display:flex;
+  flex-direction:column;
+}
+
+.field-wide{
+  grid-column:1 / 3;
+}
+
+.field-label{
+  font-size:13px;
+  font-weight:700;
+  color:#8b1d23;
+  margin-bottom:6px;
+}
+
+.field-input{
+  height:42px;
+  border-radius:8px;
+  border:1px solid #e0e0e0;
+  background:#f5f7fb;
+  padding:0 14px;
+  font-size:14px;
+  outline:none;
+  box-sizing:border-box;
+}
+
+.field-input:focus{
+  border-color:#8b1d23;
+}
+
+.field-textarea{
+  min-height:100px;
+  border-radius:8px;
+  border:1px solid #e0e0e0;
+  background:#f5f7fb;
+  padding:12px 14px;
+  font-size:14px;
+  outline:none;
+  box-sizing:border-box;
+  resize:vertical;
+  font-family:inherit;
+}
+
+.field-textarea:focus{
+  border-color:#8b1d23;
+}
+
+@media (max-width: 800px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stats {
+    grid-template-columns: 1fr;
+  }
+
+  .address-card {
+    grid-column: auto;
+  }
+
+  .edit-grid{
+    grid-template-columns: 1fr;
+  }
+
+  .field-wide{
+    grid-column: auto;
+  }
+
+  .header{
+    flex-wrap:wrap;
+  }
+}
+`;

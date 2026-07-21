@@ -1,5 +1,24 @@
+import Companyprofile from "../Components Folder/Company/Companyprofile";
+import EditProfile from "../Components Folder/Company/EditProfile";
+import VerificationStatus from "../Components Folder/Company/VerificationStatus";
+import InternshipListing from "../Components Folder/Company/Internship/InternshipListings";
+import CreateInternship from "../Components Folder/Company/Internship/CreateInternship";
+import ApplicationList from "../Components Folder/Company/Application/ApplicationList";
+import ApplicantDetails from "../Components Folder/Company/Application/ApplicantDetails";
+import Shortlisted from "../Components Folder/Company/Shorlisted/Shortlisted";
+import SlotManagement from "../Components Folder/Company/SlotManagement/SlotManagement";
+import Certificates from "../Components Folder/Company/Certificates/Certificates";
+import Messages from "../Components Folder/Company/Messages/Messages";
+import Notifications from "../Components Folder/Company/Notification/Notifications";
+import NotificationDetails from "../Components Folder/Company/Notification/NotificationDetails";
+import LoginScreen from "../Components Folder/StudentFolder/LoginAndLogoutPage/Login";
+import RegisterScreen from "../Components Folder/StudentFolder/LoginAndLogoutPage/Register";
+import ProfilePage from "../Components Folder/StudentFolder/Student-Profile-Page/ProfilePage";
+
+
+
 import Logo from "./logo.png";
-import {Outlet} from "react-router-dom";
+import { Outlet, Routes, Route } from "react-router-dom";
 
 export default function MotherScreen() {
   const titleStyle = {
@@ -237,9 +256,32 @@ export default function MotherScreen() {
               width: "95%",
               height: "95%",
               backgroundColor: "white",
+              overflow: "hidden",
+              boxSizing: "border-box",
             }}
           >
             <Outlet />
+
+            <Routes>
+                <Route path="/Page/LoginScreen/" element={<LoginScreen/>} />
+                <Route path="/Page/RegisterScreen/" element={<RegisterScreen/>} />
+                 
+                <Route path="/component-1" element={<Companyprofile/>} />
+                <Route path="/component-1/edit" element={<EditProfile/>} />
+                <Route path="/component-2" element={<VerificationStatus/>} />
+                <Route path="/component-3" element={<InternshipListing/>} />
+                <Route path="/component-3/post" element={<CreateInternship/>} />
+                <Route path="/component-4" element={<ApplicationList/>} />
+                <Route path="/component-4/:applicantId" element={<ApplicantDetails/>} />
+                <Route path="/component-5" element={<Shortlisted/>} />
+                <Route path="/component-6" element={<SlotManagement/>} />
+                <Route path="/component-7" element={<Certificates/>} />
+                <Route path="/component-8" element={<Messages/>} />
+                <Route path="/component-9" element={<Notifications/>} />
+                <Route path="/component-9/:notificationId" element={<NotificationDetails/>} />
+                <Route path="/component-10" element={<ProfilePage/>} /> 
+                
+            </Routes>
             
             </div>
         </div>

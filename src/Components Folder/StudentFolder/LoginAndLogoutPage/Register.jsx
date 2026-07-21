@@ -1,13 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import Logo from "../../../MotherScreen/logo.png";
 
 // ============================================================
 // Reusable style objects
-// Declared at the top to keep the JSX below clean and readable.
 // Mirrors the Login Page so both screens share the same design language.
 // ============================================================
 const styles = {
-  // ---------------- Header (kept consistent with the rest of the app) ----------------
   globalHeader: {
     width: "100%",
     height: "120px",
@@ -38,7 +36,6 @@ const styles = {
     whiteSpace: "nowrap",
   },
 
-  // ---------------- Body / gradient background ----------------
   mainContent: {
     width: "100%",
     minHeight: "calc(100vh - 120px)",
@@ -50,7 +47,6 @@ const styles = {
     padding: "40px 20px",
   },
 
-  // ---------------- Register card ----------------
   cardOuter: {
     position: "relative",
     width: "100%",
@@ -132,10 +128,6 @@ const styles = {
     backgroundColor: "#ffffff",
     transition: "border-color 0.15s ease",
   },
-  typeCardSelected: {
-    borderColor: "#7B1113",
-    backgroundColor: "#FBEDEE",
-  },
   typeIcon: {
     width: "42px",
     height: "42px",
@@ -215,11 +207,31 @@ const styles = {
     borderRadius: "6px",
     padding: "10px 14px",
     marginBottom: "10px",
+    gap: "12px",
+  },
+  uploadRowTextWrap: {
+    display: "flex",
+    flexDirection: "column",
+    minWidth: 0,
+    flex: 1,
   },
   uploadRowLabel: {
     color: "#333333",
     fontSize: "13px",
     fontWeight: 600,
+  },
+  uploadRowFileName: {
+    color: "#2E9E5B",
+    fontSize: "11px",
+    marginTop: "3px",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  },
+  uploadRowButtons: {
+    display: "flex",
+    gap: "8px",
+    flexShrink: 0,
   },
   uploadButton: {
     backgroundColor: "#ffffff",
@@ -227,6 +239,16 @@ const styles = {
     border: "1.5px solid #7B1113",
     borderRadius: "6px",
     padding: "6px 14px",
+    fontSize: "12px",
+    fontWeight: 700,
+    cursor: "pointer",
+  },
+  removeButton: {
+    backgroundColor: "#ffffff",
+    color: "#9a9a9a",
+    border: "1.5px solid #d8d8d8",
+    borderRadius: "6px",
+    padding: "6px 10px",
     fontSize: "12px",
     fontWeight: 700,
     cursor: "pointer",
@@ -248,6 +270,10 @@ const styles = {
     fontSize: "14px",
     fontWeight: 700,
     cursor: "pointer",
+  },
+  registerButtonDisabled: {
+    opacity: 0.6,
+    cursor: "not-allowed",
   },
   loginTextRow: {
     textAlign: "center",
@@ -340,23 +366,24 @@ const styles = {
   },
 };
 
-// List of required company verification documents.
+// Change these if your backend runs somewhere else, or swap for relative
+// paths ("/api/auth/...") if you set up a CRA proxy in package.json.
+const REGISTER_STUDENT_ENDPOINT = "http://localhost:8080/api/auth/register/student";
+const REGISTER_COMPANY_ENDPOINT = "http://localhost:8080/api/auth/register/company";
+
+const MAX_FILE_SIZE_MB = 10;
+
+// Company verification document list - unchanged placeholder from before.
 // Backend: this list may eventually come from the database so requirements
 // can change without redeploying the frontend.
 const companyDocumentTypes = [
   { id: "businessPermit", label: "Business Permit" },
-  { id: "dtiSecRegistration", label: "DTI/SEC Registration" },
   { id: "mayorsPermit", label: "Mayor's Permit" },
   { id: "birRegistration", label: "BIR Registration" },
   { id: "companyProfile", label: "Company Profile" },
-  { id: "otherDocuments", label: "Other Supporting Documents" },
 ];
 
-export default function RegisterScreen() {
-  // ------------------------------------------------------------
-  // Local UI state only. No backend logic is implemented here.
-  // ------------------------------------------------------------
-
+export default function RegisterScreen({ navigate }) {
   // Which account type the user picked: null | "student" | "company"
   const [accountType, setAccountType] = useState(null);
 
@@ -371,78 +398,168 @@ export default function RegisterScreen() {
   const [companyPassword, setCompanyPassword] = useState("");
   const [companyConfirmPassword, setCompanyConfirmPassword] = useState("");
 
-  // Backend: tracks which document files the user has attached (frontend placeholder only).
-  // Later this should hold actual File objects / upload references keyed by document id.
+  // Holds the actual PDF File objects the user picked, keyed by document id.
+  // e.g. { businessPermit: File, mayorsPermit: File, ... }
   const [companyDocuments, setCompanyDocuments] = useState({});
 
-  // Future functionality: track a loading state while the registration request is in flight
-  // const [isSubmitting, setIsSubmitting] = useState(false);
+  // One hidden <input type="file"> per document type, referenced so the
+  // visible "Upload" button can open the native file picker.
+  const fileInputRefs = useRef({});
 
-  // Future functionality: track and display a validation/registration error message
-  // const [registerError, setRegisterError] = useState(null);
-
-  // Controls the success popup shown after a (simulated) successful registration
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [registerError, setRegisterError] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  // Reset the flow back to the account type selection screen
   const handleChangeAccountType = () => {
     setAccountType(null);
+    setRegisterError(null);
   };
 
-  // Frontend placeholder for selecting a document file for a given document type.
-  // Backend: Upload company verification documents
-  // This should eventually open a file picker and upload the selected file to the
-  // backend/storage service, then store the returned file path/ID against companyId.
-  const handleDocumentUploadClick = (documentId) => {
+  const openFilePicker = (documentId) => {
+    const input = fileInputRefs.current[documentId];
+    if (input) input.click();
+  };
+
+  const handleDocumentFileSelected = (documentId, event) => {
+    const file = event.target.files && event.target.files[0];
+    // Allow re-selecting the same file later
+    event.target.value = "";
+    if (!file) return;
+
+    if (file.type !== "application/pdf") {
+      setRegisterError(`${file.name} is not a PDF file. Please upload a PDF.`);
+      return;
+    }
+    if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+      setRegisterError(`${file.name} is larger than ${MAX_FILE_SIZE_MB}MB.`);
+      return;
+    }
+
+    setRegisterError(null);
     setCompanyDocuments((previous) => ({
       ...previous,
-      [documentId]: true, // placeholder flag only, replace with real file reference later
+      [documentId]: file,
     }));
   };
 
-  // Backend: Register student account
-  // Should validate studentPassword === studentConfirmPassword, then call the
-  // registration API with { studentId, studentPassword }.
-  // Backend: Student ID will be validated here to confirm it belongs to an existing student.
-  const handleStudentRegisterSubmit = (event) => {
-    event.preventDefault();
-    // Future functionality:
-    // 1. setIsSubmitting(true)
-    // 2. Validate password and confirm password match (Password validation / Confirm password validation)
-    // 3. Call the student registration API/database with { studentId, studentPassword }
-    // 4. On success -> setShowSuccessModal(true)
-    // 5. On failure -> setRegisterError("...") and setIsSubmitting(false)
-    setShowSuccessModal(true);
+  const handleRemoveDocument = (documentId) => {
+    setCompanyDocuments((previous) => {
+      const next = { ...previous };
+      delete next[documentId];
+      return next;
+    });
   };
 
-  // Backend: Register company account
-  // Should validate companyPassword === companyConfirmPassword, then submit the
-  // company registration form together with the uploaded verification documents.
-  // Backend: uploaded document IDs/file paths will be stored against the new company record.
-  // Backend: company verification status will initially be "Pending Review" and later
-  // retrieved from the database once the Internship Coordinator reviews the documents.
-  const handleCompanyRegisterSubmit = (event) => {
+  // Backend: Register student account -> POST /api/auth/register/student
+  const handleStudentRegisterSubmit = async (event) => {
     event.preventDefault();
-    // Future functionality:
-    // 1. setIsSubmitting(true)
-    // 2. Validate password and confirm password match (Password validation / Confirm password validation)
-    // 3. Upload each selected document (Company document upload) and collect file references
-    // 4. Call the company registration API/database with
-    //    { companyName, companyEmail, companyPassword, documents }
-    // 5. On success -> setShowSuccessModal(true) (Company verification workflow begins)
-    // 6. On failure -> setRegisterError("...") and setIsSubmitting(false)
-    setShowSuccessModal(true);
+    setRegisterError(null);
+
+    if (studentPassword !== studentConfirmPassword) {
+      setRegisterError("Passwords do not match.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(REGISTER_STUDENT_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          studentId,
+          password: studentPassword,
+          confirmPassword: studentConfirmPassword,
+        }),
+      });
+
+      if (!response.ok) {
+        const message =
+          response.status === 409
+            ? "This Student ID is already registered."
+            : response.status === 400
+            ? "Please check your Student ID and password."
+            : "Something went wrong registering your account.";
+        throw new Error(message);
+      }
+
+    setShowSuccessModal(true);      
+    } catch (err) {
+      setRegisterError(err.message || "Something went wrong registering your account.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  // Future functionality: redirect to the Login page after closing the success popup
+  // Backend: Register company account -> POST /api/auth/register/company
+  // Sent as multipart/form-data so the PDF files travel in the same request
+  // as the account fields. The coordinator's review screen can then pull
+  // each document back from the company's record to view/download.
+  const handleCompanyRegisterSubmit = async (event) => {
+    event.preventDefault();
+    setRegisterError(null);
+
+    if (companyPassword !== companyConfirmPassword) {
+      setRegisterError("Passwords do not match.");
+      return;
+    }
+
+    const missingDocs = companyDocumentTypes.filter((doc) => !companyDocuments[doc.id]);
+    if (missingDocs.length > 0) {
+      setRegisterError(
+        `Please upload: ${missingDocs.map((d) => d.label).join(", ")}.`
+      );
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const formData = new FormData();
+      formData.append("companyName", companyName);
+      formData.append("companyEmail", companyEmail);
+      formData.append("password", companyPassword);
+      formData.append("confirmPassword", companyConfirmPassword);
+
+      // Backend: expect one PDF file field per document type, e.g.
+      // documents[businessPermit], documents[mayorsPermit], ...
+      companyDocumentTypes.forEach((doc) => {
+        const file = companyDocuments[doc.id];
+        if (file) {
+          formData.append(`documents[${doc.id}]`, file, file.name);
+        }
+      });
+
+      // NOTE: do not set a Content-Type header manually here - the browser
+      // sets the correct multipart/form-data boundary automatically.
+      const response = await fetch(REGISTER_COMPANY_ENDPOINT, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const message =
+          response.status === 409
+            ? "This email is already registered."
+            : response.status === 400
+            ? "Please check your company details, password, and documents."
+            : "Something went wrong registering your company.";
+        throw new Error(message);
+      }
+
+      setShowSuccessModal(true);
+    } catch (err) {
+      setRegisterError(err.message || "Something went wrong registering your company.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleCloseSuccessModal = () => {
     setShowSuccessModal(false);
-    // Future functionality: navigate("/login")
+    navigate ? navigate("/login") : (window.location.href = "/login");
   };
 
-  // Future functionality: navigate straight to the Login page from the bottom link
   const handleLoginLinkClick = () => {
-    // Future functionality: navigate("/login")
+    navigate ? navigate("/login") : (window.location.href = "/login");
   };
 
   return (
@@ -461,40 +578,28 @@ export default function RegisterScreen() {
       <div className="main-content" style={styles.mainContent}>
         {/* ================= REGISTER CARD ================= */}
         <div className="register-card" style={styles.cardOuter}>
-          {/* ---------- Floating logo badge ---------- */}
           <div style={styles.logoCircle}>
             <img src={Logo} alt="CIT University" style={styles.logoImage} />
           </div>
 
-          {/* ---------- Welcome text ---------- */}
           <div style={styles.welcomeRow}>
             <h1 style={styles.welcomeTitle}>Create Account!</h1>
-            {/* Database: could later show a dynamic subtitle/announcement fetched from the backend */}
             <div style={styles.welcomeSubtitle}>words words words words</div>
           </div>
 
-          {/* ---------- Form card ---------- */}
           <div style={styles.whiteBox}>
             {/* ================= ACCOUNT TYPE SELECTION ================= */}
             {accountType === null && (
               <div className="account-type-select">
                 <div style={styles.fieldLabel}>I am registering as a:</div>
                 <div style={styles.typeSelectRow}>
-                  {/* Student option */}
-                  <div
-                    style={styles.typeCard}
-                    onClick={() => setAccountType("student")}
-                  >
+                  <div style={styles.typeCard} onClick={() => setAccountType("student")}>
                     <div style={styles.typeIcon}>S</div>
                     <div style={styles.typeLabel}>Student</div>
                     <div style={styles.typeHelperText}>Register using your Student ID</div>
                   </div>
 
-                  {/* Company option */}
-                  <div
-                    style={styles.typeCard}
-                    onClick={() => setAccountType("company")}
-                  >
+                  <div style={styles.typeCard} onClick={() => setAccountType("company")}>
                     <div style={styles.typeIcon}>C</div>
                     <div style={styles.typeLabel}>Company</div>
                     <div style={styles.typeHelperText}>Register your organization</div>
@@ -517,7 +622,6 @@ export default function RegisterScreen() {
                   ← Back to account type selection
                 </span>
 
-                {/* Student ID field */}
                 <div style={styles.fieldGroup}>
                   <div style={styles.fieldLabel}>Student ID</div>
                   <input
@@ -525,13 +629,9 @@ export default function RegisterScreen() {
                     style={styles.input}
                     value={studentId}
                     onChange={(e) => setStudentId(e.target.value)}
-                    // Database: student.studentId
-                    // Backend: Student ID will be validated here to confirm it belongs
-                    // to an existing student record before the account is created.
                   />
                 </div>
 
-                {/* Password field */}
                 <div style={styles.fieldGroup}>
                   <div style={styles.fieldLabel}>Password</div>
                   <input
@@ -539,11 +639,9 @@ export default function RegisterScreen() {
                     style={styles.input}
                     value={studentPassword}
                     onChange={(e) => setStudentPassword(e.target.value)}
-                    // Database: student.password (should be hashed by the backend before storage)
                   />
                 </div>
 
-                {/* Confirm Password field */}
                 <div style={styles.fieldGroup}>
                   <div style={styles.fieldLabel}>Confirm Password</div>
                   <input
@@ -551,19 +649,21 @@ export default function RegisterScreen() {
                     style={styles.input}
                     value={studentConfirmPassword}
                     onChange={(e) => setStudentConfirmPassword(e.target.value)}
-                    // Future functionality: Confirm password validation
-                    // Compare against studentPassword before allowing submission
                   />
                 </div>
 
-                {/* Future functionality: render this only when registerError is set
-                {registerError && <div style={styles.errorText}>{registerError}</div>} */}
+                {registerError && <div style={styles.errorText}>{registerError}</div>}
 
                 <div style={styles.buttonsRow}>
-                  {/* Backend: Register student account */}
-                  <button type="submit" style={styles.registerButton}>
-                    {/* Future functionality: show "Registering..." while isSubmitting is true */}
-                    Register
+                  <button
+                    type="submit"
+                    style={{
+                      ...styles.registerButton,
+                      ...(isSubmitting ? styles.registerButtonDisabled : {}),
+                    }}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Registering..." : "Register"}
                   </button>
                 </div>
               </form>
@@ -576,7 +676,6 @@ export default function RegisterScreen() {
                   ← Back to account type selection
                 </span>
 
-                {/* Company Name field */}
                 <div style={styles.fieldGroup}>
                   <div style={styles.fieldLabel}>Company Name</div>
                   <input
@@ -584,11 +683,9 @@ export default function RegisterScreen() {
                     style={styles.input}
                     value={companyName}
                     onChange={(e) => setCompanyName(e.target.value)}
-                    // Database: company.companyName
                   />
                 </div>
 
-                {/* Company Email field */}
                 <div style={styles.fieldGroup}>
                   <div style={styles.fieldLabel}>Company Email</div>
                   <input
@@ -596,11 +693,9 @@ export default function RegisterScreen() {
                     style={styles.input}
                     value={companyEmail}
                     onChange={(e) => setCompanyEmail(e.target.value)}
-                    // Database: company.companyEmail
                   />
                 </div>
 
-                {/* Password field */}
                 <div style={styles.fieldGroup}>
                   <div style={styles.fieldLabel}>Password</div>
                   <input
@@ -608,11 +703,9 @@ export default function RegisterScreen() {
                     style={styles.input}
                     value={companyPassword}
                     onChange={(e) => setCompanyPassword(e.target.value)}
-                    // Database: company.password (should be hashed by the backend before storage)
                   />
                 </div>
 
-                {/* Confirm Password field */}
                 <div style={styles.fieldGroup}>
                   <div style={styles.fieldLabel}>Confirm Password</div>
                   <input
@@ -620,47 +713,73 @@ export default function RegisterScreen() {
                     style={styles.input}
                     value={companyConfirmPassword}
                     onChange={(e) => setCompanyConfirmPassword(e.target.value)}
-                    // Future functionality: Confirm password validation
-                    // Compare against companyPassword before allowing submission
                   />
                 </div>
 
                 {/* ---------- Company verification document uploads ---------- */}
                 <div style={styles.uploadSectionTitle}>Verification Documents</div>
                 <div style={styles.uploadSectionHint}>
-                  Upload the following documents for company verification. These are
-                  placeholders only for now.
+                  Upload each document as a PDF. The Internship Coordinator will
+                  review these files before your company account is verified.
                 </div>
 
-                {/* Database: uploaded document IDs/file paths will be stored against
-                    the new company record once the backend upload endpoint exists.
-                    Later render this list using .map() over companyDocumentTypes,
-                    which may itself eventually come from the database. */}
-                {companyDocumentTypes.map((doc) => (
-                  <div key={doc.id} style={styles.uploadRow}>
-                    <span style={styles.uploadRowLabel}>{doc.label}</span>
+                {companyDocumentTypes.map((doc) => {
+                  const file = companyDocuments[doc.id];
+                  return (
+                    <div key={doc.id} style={styles.uploadRow}>
+                      <div style={styles.uploadRowTextWrap}>
+                        <span style={styles.uploadRowLabel}>{doc.label}</span>
+                        {file && (
+                          <span style={styles.uploadRowFileName} title={file.name}>
+                            ✓ {file.name}
+                          </span>
+                        )}
+                      </div>
 
-                    {/* Backend: Upload company verification documents
-                        Should open a file picker and upload the selected PDF/file,
-                        then store the returned reference against doc.id */}
-                    <button
-                      type="button"
-                      style={styles.uploadButton}
-                      onClick={() => handleDocumentUploadClick(doc.id)}
-                    >
-                      {companyDocuments[doc.id] ? "Uploaded ✓" : "Upload"}
-                    </button>
-                  </div>
-                ))}
+                      <div style={styles.uploadRowButtons}>
+                        {/* Hidden native file input - PDF only */}
+                        <input
+                          ref={(el) => (fileInputRefs.current[doc.id] = el)}
+                          type="file"
+                          accept="application/pdf"
+                          style={{ display: "none" }}
+                          onChange={(e) => handleDocumentFileSelected(doc.id, e)}
+                        />
 
-                {/* Future functionality: render this only when registerError is set
-                {registerError && <div style={styles.errorText}>{registerError}</div>} */}
+                        <button
+                          type="button"
+                          style={styles.uploadButton}
+                          onClick={() => openFilePicker(doc.id)}
+                        >
+                          {file ? "Replace" : "Upload"}
+                        </button>
+
+                        {file && (
+                          <button
+                            type="button"
+                            style={styles.removeButton}
+                            onClick={() => handleRemoveDocument(doc.id)}
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {registerError && <div style={styles.errorText}>{registerError}</div>}
 
                 <div style={styles.buttonsRow}>
-                  {/* Backend: Register company account (Company verification workflow begins) */}
-                  <button type="submit" style={styles.registerButton}>
-                    {/* Future functionality: show "Registering..." while isSubmitting is true */}
-                    Register
+                  <button
+                    type="submit"
+                    style={{
+                      ...styles.registerButton,
+                      ...(isSubmitting ? styles.registerButtonDisabled : {}),
+                    }}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Registering..." : "Register"}
                   </button>
                 </div>
               </form>
@@ -677,7 +796,6 @@ export default function RegisterScreen() {
               ✕
             </button>
 
-            {/* Success icon/illustration placeholder */}
             <div style={styles.successIconWrapper}>
               <span style={styles.successIcon}>✓</span>
             </div>
@@ -695,12 +813,9 @@ export default function RegisterScreen() {
                 uploaded documents will be reviewed by the Internship Coordinator
                 before your company account is verified and gains full access to
                 the system.
-                {/* Database: company.verificationStatus will read as "Pending Review"
-                    until the Internship Coordinator approves the submitted documents */}
               </p>
             )}
 
-            {/* Future functionality: redirect to the Login page after this is clicked */}
             <button style={styles.modalContinueButton} onClick={handleCloseSuccessModal}>
               Continue to Login
             </button>
