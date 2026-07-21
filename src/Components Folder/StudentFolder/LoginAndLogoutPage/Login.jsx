@@ -220,13 +220,21 @@ const handleLoginSubmit = async (event) => {
       }
 
       // Route by role. Swap these paths for whatever your router actually uses.
-      if (user.role === "STUDENT") {
-        navigate ? navigate("/student/dashboard") : (window.location.href = "/student/dashboard");
-      } else if (user.role === "COMPANY") {
-        navigate ? navigate("/company/dashboard") : (window.location.href = "/company/dashboard");
-      } else if (user.role === "COORDINATOR") {
-        navigate ? navigate("/coordinator/dashboard") : (window.location.href = "/coordinator/dashboard");
-      }
+          if (user.role === "STUDENT") {
+            navigate
+              ? navigate("/student/profile")
+              : (window.location.href = "/student/profile");
+
+          } else if (user.role === "COMPANY") {
+            navigate
+              ? navigate("/component-1")
+              : (window.location.href = "/component-1");
+
+          } else if (user.role === "COORDINATOR") {
+            navigate
+              ? navigate("/component-1")
+              : (window.location.href = "/component-1");
+          }
     } catch (err) {
       setLoginError(err.message || "Something went wrong logging you in.");
     } finally {

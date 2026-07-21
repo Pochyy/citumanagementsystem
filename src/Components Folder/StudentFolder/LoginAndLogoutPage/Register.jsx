@@ -560,11 +560,11 @@ export default function RegisterScreen({ navigate }) {
           : (window.location.href = "/Page/LoginScreen/");
       };
 
-      const handleLoginLinkClick = () => {
-        navigate
-          ? navigate("/Page/LoginScreen/")
-          : (window.location.href = "/Page/LoginScreen/");
-      };
+        const handleLoginLinkClick = () => {
+          navigate
+            ? navigate("/Page/LoginScreen/")
+            : (window.location.href = "/Page/LoginScreen/");
+        };
 
   return (
     <div className="inner-container" style={{ minHeight: "100vh" }}>

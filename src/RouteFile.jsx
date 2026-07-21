@@ -1,32 +1,54 @@
 
-import { BrowserRouter } from 'react-router-dom';
-import MotherScreen from './MotherScreen/MotherScreen';
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
+import MotherScreen from "./MotherScreen/MotherScreen";
+
+import LoginScreen from "./Components Folder/StudentFolder/LoginAndLogoutPage/Login";
+import RegisterScreen from "./Components Folder/StudentFolder/LoginAndLogoutPage/Register";
 
 export default function RouteFile() {
   return (
     <div
       className="route-file"
       style={{
-        display: 'flex',
-        width: '100vw',
-        height: '100vh',
-        minHeight: '100vh',
-        overflow: 'hidden'
+        width: "100vw",
+        height: "100vh",
+        minHeight: "100vh",
+        overflow: "hidden",
       }}
     >
       <BrowserRouter>
-        <div
-          style={{
-            flex: 1,
-            width: '100%',
-            height: '100%',
-            minHeight: '100vh',
-            overflowY: 'auto',
-            overflowX: 'hidden'
-          }}
-        >
-          <MotherScreen />
-        </div>
+        <Routes>
+          {/* ================= LOGIN ================= */}
+          <Route
+            path="/Page/LoginScreen/"
+            element={<LoginScreen />}
+          />
+
+          {/* ================= REGISTER ================= */}
+          <Route
+            path="/Page/RegisterScreen/"
+            element={<RegisterScreen />}
+          />
+
+          {/* ================= MAIN APPLICATION ================= */}
+          {/* MotherScreen contains the Header + Sidebar */}
+          <Route
+            path="/*"
+            element={<MotherScreen />}
+          />
+
+          {/* ================= DEFAULT ROUTE ================= */}
+          <Route
+            path="/"
+            element={
+              <Navigate
+                to="/Page/LoginScreen/"
+                replace
+              />
+            }
+          />
+        </Routes>
       </BrowserRouter>
     </div>
   );
