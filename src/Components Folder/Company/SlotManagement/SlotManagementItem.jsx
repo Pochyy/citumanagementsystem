@@ -56,6 +56,11 @@ const styles = {
     background: "#fff",
     cursor: "pointer",
   },
+
+  buttonDisabled: {
+    opacity: 0.6,
+    cursor: "not-allowed",
+  },
 };
 
 export default function SlotManagementItem({
@@ -64,27 +69,20 @@ export default function SlotManagementItem({
   onDraftChange,
   onStep,
   onUpdate,
+  isSaving,
 }) {
   const percent =
     internship.slots > 0
-      ? Math.min(
-          (internship.taken /
-            internship.slots) *
-            100,
-          100
-        )
+      ? Math.min((internship.taken / internship.slots) * 100, 100)
       : 0;
 
   return (
     <div style={styles.row}>
       <div style={styles.info}>
-        <div style={styles.title}>
-          {internship.position}
-        </div>
+        <div style={styles.title}>{internship.position}</div>
 
         <div style={styles.subtitle}>
-          {internship.taken} of{" "}
-          {internship.slots} slots taken
+          {internship.taken} of {internship.slots} slots taken
         </div>
       </div>
 
@@ -99,9 +97,8 @@ export default function SlotManagementItem({
 
       <div style={styles.controls}>
         <button
-          onClick={() =>
-            onStep(internship.id, -1)
-          }
+          onClick={() => onStep(internship.id, -1)}
+          disabled={isSaving}
         >
           −
         </button>
@@ -111,29 +108,26 @@ export default function SlotManagementItem({
           value={draft}
           min="0"
           style={styles.input}
-          onChange={(e) =>
-            onDraftChange(
-              internship.id,
-              e.target.value
-            )
-          }
+          onChange={(e) => onDraftChange(internship.id, e.target.value)}
+          disabled={isSaving}
         />
 
         <button
-          onClick={() =>
-            onStep(internship.id, 1)
-          }
+          onClick={() => onStep(internship.id, 1)}
+          disabled={isSaving}
         >
           +
         </button>
 
         <button
-          style={styles.button}
-          onClick={() =>
-            onUpdate(internship.id)
-          }
+          style={{
+            ...styles.button,
+            ...(isSaving ? styles.buttonDisabled : {}),
+          }}
+          onClick={() => onUpdate(internship.id)}
+          disabled={isSaving}
         >
-          Update
+          {isSaving ? "Saving..." : "Update"}
         </button>
       </div>
     </div>

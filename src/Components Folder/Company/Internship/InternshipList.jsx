@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const departmentStyles = {
   Engineering: {
@@ -67,14 +68,38 @@ const styles = {
   number: {
     fontWeight: 600,
   },
+
+  // Slots cell is now a link into Slot Management, scoped to this internship.
+  slotsLink: {
+    fontWeight: 600,
+    color: "#7a2331",
+    cursor: "pointer",
+    textDecoration: "none",
+  },
 };
 
 const InternshipList = ({ internship }) => {
+  const navigate = useNavigate();
+
   const deptStyle =
     departmentStyles[internship.department] || {
       background: "#eee",
       color: "#444",
     };
+
+  const goToSlotManagement = () => {
+    // SlotManagementPage reads :internshipId from the URL and this state
+    // to show just this internship's slots (falls back to demo data if
+    // someone opens /component-6 without navigating from here).
+    navigate(`/component-6/${internship.id}`, {
+      state: {
+        position: internship.position,
+        department: internship.department,
+        slots: internship.slots,
+        applications: internship.applications,
+      },
+    });
+  };
 
   return (
     <tr>
@@ -113,7 +138,13 @@ const InternshipList = ({ internship }) => {
       </td>
 
       <td style={styles.td}>
-        <span style={styles.number}>{internship.slots}</span>
+        <span
+          style={styles.slotsLink}
+          onClick={goToSlotManagement}
+          title="Manage slots for this internship"
+        >
+          {internship.slots}
+        </span>
       </td>
 
       <td style={styles.td}>

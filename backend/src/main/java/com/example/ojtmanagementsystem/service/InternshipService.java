@@ -66,6 +66,19 @@ public class InternshipService {
         return InternshipResponse.from(internshipRepository.save(internship));
     }
 
+    @Transactional
+    public InternshipResponse updateSlots(Long id, Integer availableSlots) {
+        Internship internship = internshipRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Internship not found"));
+
+        if (availableSlots == null || availableSlots < 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Available slots must be 0 or more");
+        }
+
+        internship.setAvailableSlots(availableSlots);
+        return InternshipResponse.from(internshipRepository.save(internship));
+    }
+
     @Transactional(readOnly = true)
     public InternshipResponse getInternship(Long id) {
         Internship internship = internshipRepository.findById(id)

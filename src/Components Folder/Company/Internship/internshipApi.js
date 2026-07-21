@@ -54,6 +54,10 @@ export function fetchInternshipStats(companyId) {
   return request(`/api/internships/company/${companyId}/stats`);
 }
 
+export function fetchInternshipById(internshipId) {
+  return request(`/api/internships/${internshipId}`);
+}
+
 export function createInternship(companyId, payload) {
   return request(`/api/internships/company/${companyId}`, {
     method: "POST",
@@ -65,5 +69,12 @@ export function updateInternshipStatus(internshipId, status) {
   return request(`/api/internships/${internshipId}/status`, {
     method: "PATCH",
     body: JSON.stringify({ status }),
+  });
+}
+
+export function updateInternshipSlots(internshipId, availableSlots) {
+  return request(`/api/internships/${internshipId}/slots`, {
+    method: "PATCH",
+    body: JSON.stringify({ availableSlots }),
   });
 }

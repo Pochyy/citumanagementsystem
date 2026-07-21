@@ -67,6 +67,13 @@ public class InternshipController {
         return ResponseEntity.ok(internshipService.updateStatus(id, body.get("status")));
     }
 
+    // PATCH /api/internships/{id}/slots  -> update available slot count, body: {"availableSlots": 5}
+    @PatchMapping("/{id}/slots")
+    public ResponseEntity<InternshipResponse> updateSlots(@PathVariable Long id,
+                                                            @RequestBody Map<String, Integer> body) {
+        return ResponseEntity.ok(internshipService.updateSlots(id, body.get("availableSlots")));
+    }
+
     // DELETE /api/internships/{id}
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {

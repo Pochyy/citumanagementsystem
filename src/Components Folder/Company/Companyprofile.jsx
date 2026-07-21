@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import CompanyStats from "./CompanyStats"; // adjust path to wherever CompanyStats.jsx lives
 
 const API_BASE = "http://localhost:8080/api/company";
 
@@ -261,11 +262,8 @@ export default function CompanyProfile() {
               </section>
             </div>
 
-            <div className="stats">
-              <Stat label="Active Internships" value={4} />
-              <Stat label="Total Applicants" value={6} />
-              <Stat label="Slots Remaining" value={7} />
-            </div>
+            {/* Stats are now owned by CompanyStats, which fetches its own data */}
+            <CompanyStats />
           </>
         )}
       </div>
@@ -278,15 +276,6 @@ function Info({ label, value }) {
     <div>
       <div className="label">{label}</div>
       <div className="value">{value || "-"}</div>
-    </div>
-  );
-}
-
-function Stat({ label, value }) {
-  return (
-    <div className="stat">
-      <span>{label}</span>
-      <strong>{value}</strong>
     </div>
   );
 }
@@ -465,6 +454,12 @@ const baseStyles = `
     display:block;
     font-size:40px;
     color:#8b1d23;
+}
+
+.stats-error{
+  margin-top:20px;
+  color:#b23f41;
+  font-weight:600;
 }
 
 .edit-grid{
