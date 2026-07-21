@@ -234,13 +234,17 @@ const handleLoginSubmit = async (event) => {
     }
   };
 
-  const handleRegisterClick = () => {
-    navigate ? navigate("/register") : (window.location.href = "/register");
-  };
+      const handleRegisterClick = () => {
+        navigate
+          ? navigate("/Page/RegisterScreen/")
+          : (window.location.href = "/Page/RegisterScreen/");
+      };
 
-  const handleSignUpLinkClick = () => {
-    navigate ? navigate("/register") : (window.location.href = "/register");
-  };
+        const handleSignUpLinkClick = () => {
+          navigate
+            ? navigate("/Page/RegisterScreen/")
+            : (window.location.href = "/Page/RegisterScreen/");
+        };
 
   return (
     <div className="inner-container" style={{ height: "100vh" }}>

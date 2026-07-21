@@ -553,14 +553,18 @@ export default function RegisterScreen({ navigate }) {
     }
   };
 
-  const handleCloseSuccessModal = () => {
-    setShowSuccessModal(false);
-    navigate ? navigate("/login") : (window.location.href = "/login");
-  };
+      const handleCloseSuccessModal = () => {
+        setShowSuccessModal(false);
+        navigate
+          ? navigate("/Page/LoginScreen/")
+          : (window.location.href = "/Page/LoginScreen/");
+      };
 
-  const handleLoginLinkClick = () => {
-    navigate ? navigate("/login") : (window.location.href = "/login");
-  };
+      const handleLoginLinkClick = () => {
+        navigate
+          ? navigate("/Page/LoginScreen/")
+          : (window.location.href = "/Page/LoginScreen/");
+      };
 
   return (
     <div className="inner-container" style={{ minHeight: "100vh" }}>

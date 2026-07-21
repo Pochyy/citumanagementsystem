@@ -26,7 +26,7 @@ import StudentRequirements from "../Components Folder/StudentFolder/RequirementP
 import StudentProfile from "../Components Folder/StudentFolder/Student-Profile-Page/ProfilePage";
 
 import Logo from "./logo.png";
-import { Outlet, Routes, Route, NavLink, useNavigate } from "react-router-dom";
+import { Outlet, Routes, Route, NavLink, useNavigate, Navigate } from "react-router-dom";
 import sidebarLinks from "../config/sidebarLinks";
 
 export default function MotherScreen() {
@@ -313,6 +313,8 @@ export default function MotherScreen() {
             <Outlet />
 
             <Routes>
+              <Route path="/" element={<Navigate to="/Page/LoginScreen/" replace />} />
+
               <Route path="/Page/LoginScreen/" element={<LoginScreen />} />
               <Route path="/Page/RegisterScreen/" element={<RegisterScreen />} />
 
