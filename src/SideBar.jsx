@@ -1,21 +1,26 @@
 import { Link } from "react-router-dom";
+import sidebarLinks from "./config/sidebarLinks";
 
 
-export default function SideBar() {
+export default function SideBar({ role }) {
 
+  const links = sidebarLinks[role] || [];
 
   return (
-
-    <div className="sidebar" 
-    style={{
-      width: '15%',
-      height: '100vh',
-      backgroundColor: 'white',
-    }}>
+    <div 
+      className="sidebar"
+      style={{
+        width: "15%",
+        height: "100vh",
+        backgroundColor: "white",
+      }}
+    >
 
       <h1>Mother Screen</h1>
 
-      <Link to="/Page/MotherScreen">Mother Screen</Link>
+      <Link to="/Page/MotherScreen">
+        Mother Screen
+      </Link>
 
       <h1>Component Links </h1>
       <Link to="/Page/LoginScreen">Login Screen</Link>
@@ -34,8 +39,9 @@ export default function SideBar() {
       <Link to="/component-10">Profile Page</Link><br />
 
     </div>
-
-      );
-
-
+  );
 }
+
+
+
+
