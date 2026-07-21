@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import Logo from "../../../MotherScreen/logo.png";
 
 // ============================================================
@@ -207,11 +207,31 @@ const styles = {
     borderRadius: "6px",
     padding: "10px 14px",
     marginBottom: "10px",
+    gap: "12px",
+  },
+  uploadRowTextWrap: {
+    display: "flex",
+    flexDirection: "column",
+    minWidth: 0,
+    flex: 1,
   },
   uploadRowLabel: {
     color: "#333333",
     fontSize: "13px",
     fontWeight: 600,
+  },
+  uploadRowFileName: {
+    color: "#2E9E5B",
+    fontSize: "11px",
+    marginTop: "3px",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  },
+  uploadRowButtons: {
+    display: "flex",
+    gap: "8px",
+    flexShrink: 0,
   },
   uploadButton: {
     backgroundColor: "#ffffff",
@@ -219,6 +239,16 @@ const styles = {
     border: "1.5px solid #7B1113",
     borderRadius: "6px",
     padding: "6px 14px",
+    fontSize: "12px",
+    fontWeight: 700,
+    cursor: "pointer",
+  },
+  removeButton: {
+    backgroundColor: "#ffffff",
+    color: "#9a9a9a",
+    border: "1.5px solid #d8d8d8",
+    borderRadius: "6px",
+    padding: "6px 10px",
     fontSize: "12px",
     fontWeight: 700,
     cursor: "pointer",
@@ -341,6 +371,8 @@ const styles = {
 const REGISTER_STUDENT_ENDPOINT = "http://localhost:8080/api/auth/register/student";
 const REGISTER_COMPANY_ENDPOINT = "http://localhost:8080/api/auth/register/company";
 
+const MAX_FILE_SIZE_MB = 10;
+
 // Company verification document list - unchanged placeholder from before.
 // Backend: this list may eventually come from the database so requirements
 // can change without redeploying the frontend.
@@ -366,10 +398,13 @@ export default function RegisterScreen({ navigate }) {
   const [companyPassword, setCompanyPassword] = useState("");
   const [companyConfirmPassword, setCompanyConfirmPassword] = useState("");
 
-  // Backend: tracks which document files the user has attached (frontend placeholder only).
-  // Document upload/storage isn't wired to the backend yet - this only
-  // affects what the button shows.
+  // Holds the actual PDF File objects the user picked, keyed by document id.
+  // e.g. { businessPermit: File, mayorsPermit: File, ... }
   const [companyDocuments, setCompanyDocuments] = useState({});
+
+  // One hidden <input type="file"> per document type, referenced so the
+  // visible "Upload" button can open the native file picker.
+  const fileInputRefs = useRef({});
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [registerError, setRegisterError] = useState(null);
@@ -380,11 +415,39 @@ export default function RegisterScreen({ navigate }) {
     setRegisterError(null);
   };
 
-  const handleDocumentUploadClick = (documentId) => {
+  const openFilePicker = (documentId) => {
+    const input = fileInputRefs.current[documentId];
+    if (input) input.click();
+  };
+
+  const handleDocumentFileSelected = (documentId, event) => {
+    const file = event.target.files && event.target.files[0];
+    // Allow re-selecting the same file later
+    event.target.value = "";
+    if (!file) return;
+
+    if (file.type !== "application/pdf") {
+      setRegisterError(`${file.name} is not a PDF file. Please upload a PDF.`);
+      return;
+    }
+    if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+      setRegisterError(`${file.name} is larger than ${MAX_FILE_SIZE_MB}MB.`);
+      return;
+    }
+
+    setRegisterError(null);
     setCompanyDocuments((previous) => ({
       ...previous,
-      [documentId]: true, // placeholder flag only, replace with real file reference later
+      [documentId]: file,
     }));
+  };
+
+  const handleRemoveDocument = (documentId) => {
+    setCompanyDocuments((previous) => {
+      const next = { ...previous };
+      delete next[documentId];
+      return next;
+    });
   };
 
   // Backend: Register student account -> POST /api/auth/register/student
@@ -428,6 +491,9 @@ export default function RegisterScreen({ navigate }) {
   };
 
   // Backend: Register company account -> POST /api/auth/register/company
+  // Sent as multipart/form-data so the PDF files travel in the same request
+  // as the account fields. The coordinator's review screen can then pull
+  // each document back from the company's record to view/download.
   const handleCompanyRegisterSubmit = async (event) => {
     event.preventDefault();
     setRegisterError(null);
@@ -437,17 +503,36 @@ export default function RegisterScreen({ navigate }) {
       return;
     }
 
+    const missingDocs = companyDocumentTypes.filter((doc) => !companyDocuments[doc.id]);
+    if (missingDocs.length > 0) {
+      setRegisterError(
+        `Please upload: ${missingDocs.map((d) => d.label).join(", ")}.`
+      );
+      return;
+    }
+
     setIsSubmitting(true);
     try {
+      const formData = new FormData();
+      formData.append("companyName", companyName);
+      formData.append("companyEmail", companyEmail);
+      formData.append("password", companyPassword);
+      formData.append("confirmPassword", companyConfirmPassword);
+
+      // Backend: expect one PDF file field per document type, e.g.
+      // documents[businessPermit], documents[mayorsPermit], ...
+      companyDocumentTypes.forEach((doc) => {
+        const file = companyDocuments[doc.id];
+        if (file) {
+          formData.append(`documents[${doc.id}]`, file, file.name);
+        }
+      });
+
+      // NOTE: do not set a Content-Type header manually here - the browser
+      // sets the correct multipart/form-data boundary automatically.
       const response = await fetch(REGISTER_COMPANY_ENDPOINT, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          companyName,
-          companyEmail,
-          password: companyPassword,
-          confirmPassword: companyConfirmPassword,
-        }),
+        body: formData,
       });
 
       if (!response.ok) {
@@ -455,13 +540,11 @@ export default function RegisterScreen({ navigate }) {
           response.status === 409
             ? "This email is already registered."
             : response.status === 400
-            ? "Please check your company details and password."
+            ? "Please check your company details, password, and documents."
             : "Something went wrong registering your company.";
         throw new Error(message);
       }
 
-      // Note: document upload (companyDocuments) isn't sent to the backend
-      // yet - only the account itself is created at this point.
       setShowSuccessModal(true);
     } catch (err) {
       setRegisterError(err.message || "Something went wrong registering your company.");
@@ -636,22 +719,54 @@ export default function RegisterScreen({ navigate }) {
                 {/* ---------- Company verification document uploads ---------- */}
                 <div style={styles.uploadSectionTitle}>Verification Documents</div>
                 <div style={styles.uploadSectionHint}>
-                  Upload the following documents for company verification. File upload isn't
-                  wired to the backend yet - these are placeholders only for now.
+                  Upload each document as a PDF. The Internship Coordinator will
+                  review these files before your company account is verified.
                 </div>
 
-                {companyDocumentTypes.map((doc) => (
-                  <div key={doc.id} style={styles.uploadRow}>
-                    <span style={styles.uploadRowLabel}>{doc.label}</span>
-                    <button
-                      type="button"
-                      style={styles.uploadButton}
-                      onClick={() => handleDocumentUploadClick(doc.id)}
-                    >
-                      {companyDocuments[doc.id] ? "Uploaded ✓" : "Upload"}
-                    </button>
-                  </div>
-                ))}
+                {companyDocumentTypes.map((doc) => {
+                  const file = companyDocuments[doc.id];
+                  return (
+                    <div key={doc.id} style={styles.uploadRow}>
+                      <div style={styles.uploadRowTextWrap}>
+                        <span style={styles.uploadRowLabel}>{doc.label}</span>
+                        {file && (
+                          <span style={styles.uploadRowFileName} title={file.name}>
+                            ✓ {file.name}
+                          </span>
+                        )}
+                      </div>
+
+                      <div style={styles.uploadRowButtons}>
+                        {/* Hidden native file input - PDF only */}
+                        <input
+                          ref={(el) => (fileInputRefs.current[doc.id] = el)}
+                          type="file"
+                          accept="application/pdf"
+                          style={{ display: "none" }}
+                          onChange={(e) => handleDocumentFileSelected(doc.id, e)}
+                        />
+
+                        <button
+                          type="button"
+                          style={styles.uploadButton}
+                          onClick={() => openFilePicker(doc.id)}
+                        >
+                          {file ? "Replace" : "Upload"}
+                        </button>
+
+                        {file && (
+                          <button
+                            type="button"
+                            style={styles.removeButton}
+                            onClick={() => handleRemoveDocument(doc.id)}
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
 
                 {registerError && <div style={styles.errorText}>{registerError}</div>}
 
