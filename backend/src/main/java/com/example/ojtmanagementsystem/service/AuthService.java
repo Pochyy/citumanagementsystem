@@ -42,8 +42,6 @@ public class AuthService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "This Student ID is already registered.");
         }
 
-        // FirstName/LastName/Email are left NULL here and filled in later
-        // from the student's Profile page, as described in your design.
         User user = new User();
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(Role.STUDENT);
@@ -53,7 +51,7 @@ public class AuthService {
         Student student = new Student(request.getStudentId(), user);
         studentRepository.save(student);
 
-        return UserResponse.fromEntity(user);
+        return UserResponse.fromEntity(user, student.getStudentId());
     }
 
     // ---------------- REGISTER: COMPANY ----------------
@@ -72,7 +70,6 @@ public class AuthService {
         user.setEmail(request.getCompanyEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(Role.COMPANY);
-        // Company accounts start pending until the Coordinator verifies documents.
         user.setStatus(UserStatus.PENDING_REVIEW);
         user = userRepository.save(user);
 
@@ -91,8 +88,11 @@ public class AuthService {
         // Try as a Student ID first
         Optional<Student> studentMatch = studentRepository.findById(request.getLogin());
         User user;
+        String studentId = null;
+
         if (studentMatch.isPresent()) {
             user = studentMatch.get().getUser();
+            studentId = studentMatch.get().getStudentId();
         } else {
             // Fall back to email (company / coordinator)
             user = userRepository.findByEmail(request.getLogin())
@@ -106,6 +106,6 @@ public class AuthService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "This account is " + user.getStatus() + ".");
         }
 
-        return UserResponse.fromEntity(user);
+        return UserResponse.fromEntity(user, studentId);
     }
 }

@@ -190,7 +190,7 @@ export default function LoginScreen({ navigate }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loginError, setLoginError] = useState(null);
 
-  const handleLoginSubmit = async (event) => {
+const handleLoginSubmit = async (event) => {
     event.preventDefault();
     setLoginError(null);
     setIsSubmitting(true);
@@ -203,7 +203,6 @@ export default function LoginScreen({ navigate }) {
       });
 
       if (!response.ok) {
-        // AuthService throws 401 for bad credentials, 403 for suspended/inactive
         const message =
           response.status === 401
             ? "Invalid login or password."
@@ -211,11 +210,14 @@ export default function LoginScreen({ navigate }) {
         throw new Error(message);
       }
 
-      const user = await response.json(); // UserResponse: userId, firstName, lastName, email, role, status, dateCreated
+      const user = await response.json(); // UserResponse: userId, studentId, firstName, lastName, email, role, status, dateCreated
 
-      // Stash identity for the rest of the app (e.g. CompanyProfile.jsx reads userId).
+      // Stash identity for the rest of the app.
       localStorage.setItem("userId", user.userId);
       localStorage.setItem("role", user.role);
+      if (user.studentId) {
+        localStorage.setItem("studentId", user.studentId);
+      }
 
       // Route by role. Swap these paths for whatever your router actually uses.
       if (user.role === "STUDENT") {

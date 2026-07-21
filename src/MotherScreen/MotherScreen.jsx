@@ -13,6 +13,7 @@ import Notifications from "../Components Folder/Company/Notification/Notificatio
 import NotificationDetails from "../Components Folder/Company/Notification/NotificationDetails";
 import LoginScreen from "../Components Folder/StudentFolder/LoginAndLogoutPage/Login";
 import RegisterScreen from "../Components Folder/StudentFolder/LoginAndLogoutPage/Register";
+import ProfilePage from "../Components Folder/StudentFolder/Student-Profile-Page/ProfilePage";
 
 
 
@@ -278,6 +279,7 @@ export default function MotherScreen() {
                 <Route path="/component-8" element={<Messages/>} />
                 <Route path="/component-9" element={<Notifications/>} />
                 <Route path="/component-9/:notificationId" element={<NotificationDetails/>} />
+                <Route path="/component-10" element={<ProfilePage/>} /> 
                 
             </Routes>
             

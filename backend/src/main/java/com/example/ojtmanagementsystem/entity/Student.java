@@ -1,34 +1,66 @@
-package com.example.ojtmanagementsystem.entity;
+    package com.example.ojtmanagementsystem.entity;
 
-import jakarta.persistence.*;
+    import jakarta.persistence.*;
+    import java.time.LocalDate;
 
-/**
- * Student-specific data. studentId is the school-issued ID and is what the
- * student logs in with (not email). One-to-one link back to the User row
- * that holds the actual credentials/status.
- */
-@Entity
-@Table(name = "students")
-public class Student {
+    @Entity
+    @Table(name = "students")
+    public class Student {
 
-    @Id
-    @Column(name = "student_id")
-    private String studentId;
+        @Id
+        @Column(name = "student_id")
+        private String studentId;
 
-    @OneToOne
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
-    private User user;
+        @OneToOne
+        @JoinColumn(name = "user_id", nullable = false, unique = true)
+        private User user;
 
-    public Student() {}
+        @Column(name = "phone_number")
+        private String phoneNumber;
 
-    public Student(String studentId, User user) {
-        this.studentId = studentId;
-        this.user = user;
+        @Column(name = "date_of_birth")
+        private LocalDate dateOfBirth;
+
+        @Column(name = "address")
+        private String address;
+
+        @Column(name = "program")
+        private String program;
+
+        @Column(name = "year_level")
+        private String yearLevel;
+
+        @Column(name = "department")
+        private String department;
+
+        public Student() {}
+
+        public Student(String studentId, User user) {
+            this.studentId = studentId;
+            this.user = user;
+        }
+
+        public String getStudentId() { return studentId; }
+        public void setStudentId(String studentId) { this.studentId = studentId; }
+
+        public User getUser() { return user; }
+        public void setUser(User user) { this.user = user; }
+
+        public String getPhoneNumber() { return phoneNumber; }
+        public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+
+        public LocalDate getDateOfBirth() { return dateOfBirth; }
+        public void setDateOfBirth(LocalDate dateOfBirth) { this.dateOfBirth = dateOfBirth; }
+
+        public String getAddress() { return address; }
+        public void setAddress(String address) { this.address = address; }
+
+        public String getProgram() { return program; }
+        public void setProgram(String program) { this.program = program; }
+
+        public String getYearLevel() { return yearLevel; }
+        public void setYearLevel(String yearLevel) { this.yearLevel = yearLevel; }
+
+        public String getDepartment() { return department; }
+        public void setDepartment(String department) { this.department = department; }
     }
-
-    public String getStudentId() { return studentId; }
-    public void setStudentId(String studentId) { this.studentId = studentId; }
-
-    public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
-}

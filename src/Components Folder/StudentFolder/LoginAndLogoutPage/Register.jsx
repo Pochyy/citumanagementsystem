@@ -346,11 +346,9 @@ const REGISTER_COMPANY_ENDPOINT = "http://localhost:8080/api/auth/register/compa
 // can change without redeploying the frontend.
 const companyDocumentTypes = [
   { id: "businessPermit", label: "Business Permit" },
-  { id: "dtiSecRegistration", label: "DTI/SEC Registration" },
   { id: "mayorsPermit", label: "Mayor's Permit" },
   { id: "birRegistration", label: "BIR Registration" },
   { id: "companyProfile", label: "Company Profile" },
-  { id: "otherDocuments", label: "Other Supporting Documents" },
 ];
 
 export default function RegisterScreen({ navigate }) {
@@ -421,7 +419,7 @@ export default function RegisterScreen({ navigate }) {
         throw new Error(message);
       }
 
-      setShowSuccessModal(true);
+    setShowSuccessModal(true);      
     } catch (err) {
       setRegisterError(err.message || "Something went wrong registering your account.");
     } finally {

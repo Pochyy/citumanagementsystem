@@ -1,36 +1,7 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import InternshipList from "./InternshipList";
-
-const defaultInternships = [
-  {
-    id: 1,
-    position: "Software Engineering Intern",
-    department: "Engineering",
-    slots: 5,
-    applications: 14,
-    status: "Open",
-    postedDate: "Mar 1, 2025",
-  },
-  {
-    id: 2,
-    position: "UI/UX Design Intern",
-    department: "Design",
-    slots: 2,
-    applications: 9,
-    status: "Open",
-    postedDate: "Feb 20, 2025",
-  },
-  {
-    id: 3,
-    position: "Data Analytics Intern",
-    department: "Data Science",
-    slots: 3,
-    applications: 11,
-    status: "Close",
-    postedDate: "Feb 10, 2025",
-  },
-];
+import { resolveCompanyId, fetchInternships, fetchInternshipStats } from "./internshipApi";
 
 const styles = {
   page: {
@@ -118,19 +89,52 @@ const styles = {
 const InternshipListingsPage = () => {
   const navigate = useNavigate();
 
-  const totalSlots = defaultInternships.reduce(
-    (sum, item) => sum + item.slots,
-    0
-  );
+  const [internships, setInternships] = useState([]);
+  const [stats, setStats] = useState({
+    totalPostings: 0,
+    currentlyOpen: 0,
+    totalSlots: 0,
+    totalApplicants: 0,
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const totalApplications = defaultInternships.reduce(
-    (sum, item) => sum + item.applications,
-    0
-  );
+  useEffect(() => {
+    let cancelled = false;
 
-  const openCount = defaultInternships.filter(
-    (item) => item.status === "Open"
-  ).length;
+    async function load() {
+      setLoading(true);
+      setError(null);
+      try {
+        const companyId = await resolveCompanyId();
+        if (!companyId) {
+          if (!cancelled) {
+            setError("No company is logged in.");
+            setLoading(false);
+          }
+          return;
+        }
+
+        const [listData, statsData] = await Promise.all([
+          fetchInternships(companyId),
+          fetchInternshipStats(companyId),
+        ]);
+        if (!cancelled) {
+          setInternships(listData);
+          setStats(statsData);
+        }
+      } catch (err) {
+        if (!cancelled) setError(err.message || "Failed to load internships.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div style={styles.page}>
@@ -155,46 +159,60 @@ const InternshipListingsPage = () => {
 
       <div style={styles.stats}>
         <div style={styles.statCard}>
-          <div style={styles.statValue}>{defaultInternships.length}</div>
+          <div style={styles.statValue}>{stats.totalPostings}</div>
           <div style={styles.statLabel}>Total Postings</div>
         </div>
 
         <div style={styles.statCard}>
-          <div style={styles.statValue}>{openCount}</div>
+          <div style={styles.statValue}>{stats.currentlyOpen}</div>
           <div style={styles.statLabel}>Currently Open</div>
         </div>
 
         <div style={styles.statCard}>
-          <div style={styles.statValue}>{totalSlots}</div>
+          <div style={styles.statValue}>{stats.totalSlots}</div>
           <div style={styles.statLabel}>Total Slots</div>
         </div>
 
         <div style={styles.statCard}>
-          <div style={styles.statValue}>{totalApplications}</div>
+          <div style={styles.statValue}>{stats.totalApplicants}</div>
           <div style={styles.statLabel}>Applicants</div>
         </div>
       </div>
 
-      <table style={styles.table}>
-        <thead>
-          <tr>
-            <th style={styles.th}>Position</th>
-            <th style={styles.th}>Department</th>
-            <th style={styles.th}>Slots</th>
-            <th style={styles.th}>Applications</th>
-            <th style={styles.th}>Status</th>
-          </tr>
-        </thead>
+      {error && (
+        <p style={{ color: "#b3261e", marginBottom: "15px" }}>{error}</p>
+      )}
 
-        <tbody>
-          {defaultInternships.map((internship) => (
-            <InternshipList
-              key={internship.id}
-              internship={internship}
-            />
-          ))}
-        </tbody>
-      </table>
+      {loading ? (
+        <p style={{ color: "#666" }}>Loading internships...</p>
+      ) : (
+        <table style={styles.table}>
+          <thead>
+            <tr>
+              <th style={styles.th}>Position</th>
+              <th style={styles.th}>Department</th>
+              <th style={styles.th}>Slots</th>
+              <th style={styles.th}>Applications</th>
+              <th style={styles.th}>Status</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {internships.map((internship) => (
+              <InternshipList
+                key={internship.id}
+                internship={internship}
+              />
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      {!loading && !error && internships.length === 0 && (
+        <p style={{ color: "#666", marginTop: "15px" }}>
+          No internships posted yet.
+        </p>
+      )}
     </div>
   );
 };

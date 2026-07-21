@@ -31,7 +31,7 @@ export default function SideBar() {
       <Link to="/component-7">Certificates</Link><br />
       <Link to="/component-8">Messages</Link><br />
       <Link to="/component-9">Notifications</Link><br />
-
+      <Link to="/component-10">Profile Page</Link><br />
 
     </div>
 

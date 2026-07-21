@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { resolveCompanyId, createInternship } from "./internshipApi";
 
 const initialForm = {
   positionTitle: "",
@@ -22,6 +23,8 @@ export default function CreateInternship({ onSubmit }) {
   const [touched, setTouched] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [posted, setPosted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
 
   const handleChange = (field) => (e) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -94,17 +97,46 @@ export default function CreateInternship({ onSubmit }) {
 
   const showError = (field) => (touched[field] || submitted) && errors[field];
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitted(true);
+    setSubmitError(null);
+
     if (!isValid) {
       const firstErrorField = document.querySelector("[data-invalid='true']");
       if (firstErrorField) firstErrorField.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
-    if (onSubmit) onSubmit({ ...form, requiredSkills: form.requiredSkills.join(", ") });
-    setPosted(true);
-    setTimeout(() => navigate("/component-3"), 900);
+
+    const companyId = await resolveCompanyId();
+    if (!companyId) {
+      setSubmitError("No company is logged in. Please log in again.");
+      return;
+    }
+
+    const payload = {
+      positionTitle: form.positionTitle,
+      department: form.department,
+      availableSlots: Number(form.availableSlots),
+      duration: form.duration,
+      startDate: form.startDate,
+      applicationDeadline: form.applicationDeadline,
+      jobDescription: form.jobDescription,
+      requiredSkills: form.requiredSkills,
+      workSetup: form.workSetup,
+    };
+
+    setSubmitting(true);
+    try {
+      const created = await createInternship(companyId, payload);
+      if (onSubmit) onSubmit(created);
+      setPosted(true);
+      setTimeout(() => navigate("/component-3"), 900);
+    } catch (err) {
+      setSubmitError(err.message || "Failed to post internship. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleCancel = () => {
@@ -954,6 +986,12 @@ export default function CreateInternship({ onSubmit }) {
                 Fix the highlighted fields before posting.
               </span>
             )}
+            {submitError && (
+              <span className="create-internship__footer-status">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+                {submitError}
+              </span>
+            )}
             <div className="create-internship__footer-actions">
               <button
                 type="button"
@@ -962,11 +1000,15 @@ export default function CreateInternship({ onSubmit }) {
               >
                 Cancel
               </button>
-              <button type="submit" className="create-internship__btn create-internship__btn--submit" disabled={posted}>
+              <button
+                type="submit"
+                className="create-internship__btn create-internship__btn--submit"
+                disabled={posted || submitting}
+              >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7Z" />
                 </svg>
-                {posted ? "Posted" : "Post internship"}
+                {posted ? "Posted" : submitting ? "Posting..." : "Post internship"}
               </button>
             </div>
           </div>

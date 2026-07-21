@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 /** Safe view of a User to send back to the frontend - password excluded. */
 public class UserResponse {
     private Long userId;
+    private String studentId; // null for non-student users (COMPANY, COORDINATOR)
     private String firstName;
     private String lastName;
     private String email;
@@ -28,7 +29,15 @@ public class UserResponse {
         return dto;
     }
 
+    // Overload used when we already resolved the Student (e.g. during login)
+    public static UserResponse fromEntity(User user, String studentId) {
+        UserResponse dto = fromEntity(user);
+        dto.studentId = studentId;
+        return dto;
+    }
+
     public Long getUserId() { return userId; }
+    public String getStudentId() { return studentId; }
     public String getFirstName() { return firstName; }
     public String getLastName() { return lastName; }
     public String getEmail() { return email; }
