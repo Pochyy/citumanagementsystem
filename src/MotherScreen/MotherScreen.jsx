@@ -15,12 +15,32 @@ import LoginScreen from "../Components Folder/StudentFolder/LoginAndLogoutPage/L
 import RegisterScreen from "../Components Folder/StudentFolder/LoginAndLogoutPage/Register";
 import ProfilePage from "../Components Folder/StudentFolder/Student-Profile-Page/ProfilePage";
 
-
+//Student Page imports
+import StudentAnnouncements from "../Components Folder/StudentFolder/AnnouncementPage/Announcementpage";
+import StudentAttendance from "../Components Folder/StudentFolder/AttendancePage/Attendancepage";
+import StudentMessages from "../Components Folder/StudentFolder/MessagesPage/MessagesPage";
+import StudentMyinternships from "../Components Folder/StudentFolder/MyInternshipsPage/Myinternshipspage";
+import StudentNotifications from "../Components Folder/StudentFolder/NotificationPage/NotificationsPage";
+import StudentOpportunities from "../Components Folder/StudentFolder/OpportunitiesPage/OpportunitiesPage";
+import StudentRequirements from "../Components Folder/StudentFolder/RequirementPage/RequirementsPage";
+import StudentProfile from "../Components Folder/StudentFolder/Student-Profile-Page/ProfilePage";
 
 import Logo from "./logo.png";
-import { Outlet, Routes, Route } from "react-router-dom";
+import { Outlet, Routes, Route, NavLink, useNavigate } from "react-router-dom";
+import sidebarLinks from "../config/sidebarLinks";
 
 export default function MotherScreen() {
+  const role = localStorage.getItem("role"); // "STUDENT" | "COMPANY" | "COORDINATOR" | null
+  const links = sidebarLinks[role] || [];
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("role");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("studentId");
+    navigate("/Page/LoginScreen/");
+  };
+
   const titleStyle = {
     color: "#7B1113",
     fontSize: "32px",
@@ -64,9 +84,7 @@ export default function MotherScreen() {
             justifyContent: "center",
           }}
         >
-          <div style={titleStyle}>
-            CITU OJT INTERNSHIP
-          </div>
+          <div style={titleStyle}>CITU OJT INTERNSHIP</div>
 
           <div
             style={{
@@ -92,154 +110,186 @@ export default function MotherScreen() {
           style={{
             width: "20%",
             backgroundColor: "#7B1113",
+            display: "flex",
+            flexDirection: "column",
+            height: "100%",
           }}
         >
-<div
-  className="profile-box"
-  style={{
-    width: "100%",
-    height: "180px",
-    padding: "24px 20px",
-    borderBottom: "1px solid #9A1618",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: "12px",
-    boxSizing: "border-box",
-  }}
->
-
-  {/* PROFILE ICON */}
-  <div
-    style={{
-      width: "72px",
-      height: "72px",
-      backgroundColor: "#9A1618",
-      borderRadius: "50%",
-      border: "2px solid rgba(255,255,255,0.30)",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-    }}
-  >
-
-    {/* Simple User Icon */}
-    <div
-      style={{
-        width: "38px",
-        height: "38px",
-        position: "relative",
-      }}
-    >
-
-      {/* Head */}
-      <div
-        style={{
-          width: "13px",
-          height: "13px",
-          borderRadius: "50%",
-          border: "3px solid rgba(255,255,255,0.6)",
-          position: "absolute",
-          top: "5px",
-          left: "13px",
-          boxSizing: "border-box",
-        }}
-      />
-
-      {/* Body */}
-      <div
-        style={{
-          width: "24px",
-          height: "11px",
-          borderRadius: "15px 15px 0 0",
-          border: "3px solid rgba(255,255,255,0.6)",
-          borderBottom: "none",
-          position: "absolute",
-          bottom: "5px",
-          left: "7px",
-          boxSizing: "border-box",
-        }}
-      />
-
-    </div>
-
-  </div>
-
-
-      {/* USER INFORMATION */}
-      <div
-        style={{
-          width: "100%",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-        }}
-      >
-
-        <div
-          style={{
-            color: "white",
-            fontSize: "16px",
-            fontFamily: "Instrument Sans, sans-serif",
-            fontWeight: "700",
-            lineHeight: "20px",
-          }}
-        >
-          Juan dela Cruz
-        </div>
-
-
-        <div
-          style={{
-            color: "rgba(255,255,255,0.60)",
-            fontSize: "12px",
-            fontFamily: "Inter, sans-serif",
-            fontWeight: "400",
-            textTransform: "uppercase",
-            letterSpacing: "1.2px",
-            lineHeight: "18px",
-            marginTop: "2px",
-          }}
-        >
-          Student
-        </div>
-
-
-      </div>
-
-    </div>
-
-        {/*
-          <div className="side-bar-contents">
-            {[
-              "Profile",
-              "Internship Opportunities",
-              "My Applications",
-              "Requirements",
-              "Attendance",
-              "Announcements",
-              "Messages",
-              "Notifications",
-            ].map((item) => (
+          <div
+            className="profile-box"
+            style={{
+              width: "100%",
+              height: "180px",
+              padding: "24px 20px",
+              borderBottom: "1px solid #9A1618",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: "12px",
+              boxSizing: "border-box",
+            }}
+          >
+            {/* PROFILE ICON */}
+            <div
+              style={{
+                width: "72px",
+                height: "72px",
+                backgroundColor: "#9A1618",
+                borderRadius: "50%",
+                border: "2px solid rgba(255,255,255,0.30)",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              {/* Simple User Icon */}
               <div
-                key={item}
                 style={{
-                  margin: "8px",
-                  color: "rgba(255,255,255,.9)",
-                  fontSize: 14,
-                  fontFamily: "Inter",
+                  width: "38px",
+                  height: "38px",
+                  position: "relative",
                 }}
               >
-                {item}
+                {/* Head */}
+                <div
+                  style={{
+                    width: "13px",
+                    height: "13px",
+                    borderRadius: "50%",
+                    border: "3px solid rgba(255,255,255,0.6)",
+                    position: "absolute",
+                    top: "5px",
+                    left: "13px",
+                    boxSizing: "border-box",
+                  }}
+                />
+
+                {/* Body */}
+                <div
+                  style={{
+                    width: "24px",
+                    height: "11px",
+                    borderRadius: "15px 15px 0 0",
+                    border: "3px solid rgba(255,255,255,0.6)",
+                    borderBottom: "none",
+                    position: "absolute",
+                    bottom: "5px",
+                    left: "7px",
+                    boxSizing: "border-box",
+                  }}
+                />
               </div>
-            ))}
+            </div>
+
+            {/* USER INFORMATION */}
+            <div
+              style={{
+                width: "100%",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+              }}
+            >
+              <div
+                style={{
+                  color: "white",
+                  fontSize: "16px",
+                  fontFamily: "Instrument Sans, sans-serif",
+                  fontWeight: "700",
+                  lineHeight: "20px",
+                }}
+              >
+                Juan dela Cruz
+              </div>
+
+              <div
+                style={{
+                  color: "rgba(255,255,255,0.60)",
+                  fontSize: "12px",
+                  fontFamily: "Inter, sans-serif",
+                  fontWeight: "400",
+                  textTransform: "uppercase",
+                  letterSpacing: "1.2px",
+                  lineHeight: "18px",
+                  marginTop: "2px",
+                }}
+              >
+                Student
+              </div>
+            </div>
           </div>
 
-        */}
+          <div
+            className="side-bar-contents"
+            style={{ flex: 1, overflowY: "auto" }}
+          >
+            {links.length > 0 ? (
+              links.map((link) => (
+                <NavLink
+                  key={link.path}
+                  to={link.path}
+                  style={({ isActive }) => ({
+                    display: "block",
+                    margin: "8px",
+                    padding: "8px 12px",
+                    borderRadius: "6px",
+                    color: isActive ? "#7B1113" : "rgba(255,255,255,.9)",
+                    backgroundColor: isActive ? "white" : "transparent",
+                    fontWeight: isActive ? 700 : 400,
+                    fontSize: 14,
+                    fontFamily: "Inter",
+                    textDecoration: "none",
+                    transition: "background-color 0.15s ease",
+                  })}
+                >
+                  {link.name}
+                </NavLink>
+              ))
+            ) : (
+              <div
+                style={{
+                  margin: "8px",
+                  padding: "8px 12px",
+                  color: "rgba(255,255,255,.6)",
+                  fontSize: 13,
+                  fontFamily: "Inter",
+                  fontStyle: "italic",
+                }}
+              >
+                No pages available yet for this role.
+              </div>
+            )}
+          </div>
+
+          {/* ================= LOGOUT BUTTON ================= */}
+          <button
+            onClick={handleLogout}
+            style={{
+              margin: "16px",
+              padding: "10px 12px",
+              backgroundColor: "transparent",
+              border: "1px solid rgba(255,255,255,0.4)",
+              borderRadius: "6px",
+              color: "white",
+              fontSize: 14,
+              fontFamily: "Inter",
+              fontWeight: 600,
+              cursor: "pointer",
+              transition: "background-color 0.15s ease",
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.backgroundColor = "#9A1618")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.backgroundColor = "transparent")
+            }
+          >
+            Log Out
+          </button>
         </div>
 
-<div
+        <div
           className="main-content"
           style={{
             width: "80%",
@@ -263,28 +313,62 @@ export default function MotherScreen() {
             <Outlet />
 
             <Routes>
-                <Route path="/Page/LoginScreen/" element={<LoginScreen/>} />
-                <Route path="/Page/RegisterScreen/" element={<RegisterScreen/>} />
-                 
-                <Route path="/component-1" element={<Companyprofile/>} />
-                <Route path="/component-1/edit" element={<EditProfile/>} />
-                <Route path="/component-2" element={<VerificationStatus/>} />
-                <Route path="/component-3" element={<InternshipListing/>} />
-                <Route path="/component-3/post" element={<CreateInternship/>} />
-                <Route path="/component-4" element={<ApplicationList/>} />
-                <Route path="/component-4/:applicantId" element={<ApplicantDetails/>} />
-                <Route path="/component-5" element={<Shortlisted/>} />
-                <Route path="/component-6" element={<SlotManagement/>} />
-                <Route path="/component-6/:internshipId" element={<SlotManagement/>} />
-                <Route path="/component-7" element={<Certificates/>} />
-                <Route path="/component-8" element={<Messages/>} />
-                <Route path="/component-9" element={<Notifications/>} />
-                <Route path="/component-9/:notificationId" element={<NotificationDetails/>} />
-                <Route path="/component-10" element={<ProfilePage/>} /> 
-                
+              <Route path="/Page/LoginScreen/" element={<LoginScreen />} />
+              <Route path="/Page/RegisterScreen/" element={<RegisterScreen />} />
+
+              <Route path="/component-1" element={<Companyprofile />} />
+              <Route path="/component-1/edit" element={<EditProfile />} />
+              <Route path="/component-2" element={<VerificationStatus />} />
+              <Route path="/component-3" element={<InternshipListing />} />
+              <Route path="/component-3/post" element={<CreateInternship />} />
+              <Route path="/component-4" element={<ApplicationList />} />
+              <Route
+                path="/component-4/:applicantId"
+                element={<ApplicantDetails />}
+              />
+              <Route path="/component-5" element={<Shortlisted />} />
+              <Route path="/component-6" element={<SlotManagement />} />
+              <Route
+                path="/component-6/:internshipId"
+                element={<SlotManagement />}
+              />
+              <Route path="/component-7" element={<Certificates />} />
+              <Route path="/component-8" element={<Messages />} />
+              <Route path="/component-9" element={<Notifications />} />
+              <Route
+                path="/component-9/:notificationId"
+                element={<NotificationDetails />}
+              />
+              <Route path="/component-10" element={<ProfilePage />} />
+
+              <Route path="/student/profile" element={<StudentProfile />} />
+              <Route
+                path="/student/opportunities"
+                element={<StudentOpportunities />}
+              />
+              <Route
+                path="/student/internships"
+                element={<StudentMyinternships />}
+              />
+              <Route
+                path="/student/requirements"
+                element={<StudentRequirements />}
+              />
+              <Route
+                path="/student/attendance"
+                element={<StudentAttendance />}
+              />
+              <Route
+                path="/student/announcements"
+                element={<StudentAnnouncements />}
+              />
+              <Route path="/student/messages" element={<StudentMessages />} />
+              <Route
+                path="/student/notifications"
+                element={<StudentNotifications />}
+              />
             </Routes>
-            
-            </div>
+          </div>
         </div>
       </div>
     </div>
