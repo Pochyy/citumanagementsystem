@@ -3,7 +3,9 @@ package com.example.ojtmanagementsystem.controller;
 import com.example.ojtmanagementsystem.dto.CompanyListResponse;
 import com.example.ojtmanagementsystem.dto.VerificationUpdateRequest;
 import com.example.ojtmanagementsystem.entity.Company;
+import com.example.ojtmanagementsystem.entity.Internship;
 import com.example.ojtmanagementsystem.repository.CompanyRepository;
+import com.example.ojtmanagementsystem.repository.InternshipRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,9 +23,11 @@ import java.util.stream.Collectors;
 public class CoordinatorCompanyController {
 
     private final CompanyRepository companyRepository;
+    private final InternshipRepository internshipRepository;
 
-    public CoordinatorCompanyController(CompanyRepository companyRepository) {
+    public CoordinatorCompanyController(CompanyRepository companyRepository, InternshipRepository internshipRepository) {
         this.companyRepository = companyRepository;
+        this.internshipRepository = internshipRepository;
     }
 
     /**
@@ -44,8 +48,18 @@ public class CoordinatorCompanyController {
             dto.setContactNumber(c.getPhone() != null ? c.getPhone() : "");
             dto.setEmail(c.getEmail() != null ? c.getEmail() : "");
             dto.setVerificationStatus(c.getVerificationStatus() != null ? c.getVerificationStatus() : "PENDING_REVIEW");
-            dto.setSlotsFilled(0); // Would need a join to calculate
-            dto.setSlotsTotal(0);  // Would need a join to calculate
+            
+            // Calculate total slots and filled slots from internships
+            List<Internship> internships = internshipRepository.findByCompanyIdOrderByPostedDateDesc(c.getId());
+            int totalSlots = internships.stream()
+                    .mapToInt(i -> i.getAvailableSlots() != null ? i.getAvailableSlots() : 0)
+                    .sum();
+            int filledSlots = internships.stream()
+                    .mapToInt(i -> i.getApplicationsCount() != null ? i.getApplicationsCount() : 0)
+                    .sum();
+            
+            dto.setSlotsFilled(filledSlots);
+            dto.setSlotsTotal(totalSlots);
             return dto;
         }).collect(Collectors.toList());
         return ResponseEntity.ok(response);
