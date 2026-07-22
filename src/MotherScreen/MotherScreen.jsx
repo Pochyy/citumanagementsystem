@@ -1,7 +1,7 @@
 
 import Companyprofile from "../Components Folder/Company/Companyprofile";
 import EditProfile from "../Components Folder/Company/EditProfile";
-import VerificationStatus from "../Components Folder/Company/VerificationStatus";
+import VerificationForm from "../Components Folder/Company/VerificationForm";
 import InternshipListing from "../Components Folder/Company/Internship/InternshipListings";
 import CreateInternship from "../Components Folder/Company/Internship/CreateInternship";
 import ApplicationList from "../Components Folder/Company/Application/ApplicationList";
@@ -403,7 +403,7 @@ export default function MotherScreen() {
 
               <Route
                 path="/component-2"
-                element={<VerificationStatus />}
+                element={<VerificationForm />}
               />
 
               <Route
