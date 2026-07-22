@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from "react";
 import Logo from "../../../MotherScreen/logo.png";
 
@@ -106,8 +107,10 @@ const styles = {
     border: "1px solid #d8d8d8",
     borderRadius: "10px",
     boxShadow: "0 6px 18px rgba(0,0,0,0.15)",
-    padding: "38px 32px 28px 32px",
+    padding: "24px 28px 18px 28px",
     boxSizing: "border-box",
+    maxHeight: "calc(100vh - 140px)",
+    overflowY: "auto",
   },
 
   // ---------------- Account type selection ----------------
@@ -167,11 +170,11 @@ const styles = {
     marginBottom: "6px",
   },
   fieldGroup: {
-    marginBottom: "16px",
+    marginBottom: "10px",
   },
   input: {
     width: "100%",
-    height: "40px",
+    height: "36px",
     backgroundColor: "#e2e2e2",
     border: "none",
     borderRadius: "6px",
@@ -192,12 +195,12 @@ const styles = {
     color: "#7B1113",
     fontSize: "14px",
     fontWeight: 700,
-    margin: "24px 0 4px 0",
+    margin: "12px 0 4px 0",
   },
   uploadSectionHint: {
     color: "#9a9a9a",
     fontSize: "11px",
-    marginBottom: "14px",
+    marginBottom: "8px",
   },
   uploadRow: {
     display: "flex",
@@ -205,8 +208,8 @@ const styles = {
     justifyContent: "space-between",
     backgroundColor: "#f4f4f4",
     borderRadius: "6px",
-    padding: "10px 14px",
-    marginBottom: "10px",
+    padding: "6px 12px",
+    marginBottom: "6px",
     gap: "12px",
   },
   uploadRowTextWrap: {
@@ -258,7 +261,7 @@ const styles = {
   buttonsRow: {
     display: "flex",
     gap: "14px",
-    marginTop: "22px",
+    marginTop: "14px",
   },
   registerButton: {
     flex: 1,

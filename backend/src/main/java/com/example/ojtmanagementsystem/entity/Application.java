@@ -1,7 +1,10 @@
 package com.example.ojtmanagementsystem.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "applications")
@@ -30,6 +33,12 @@ public class Application {
     @Column(length = 2000)
     private String coverLetter;
 
+    // Automatically bumped by Hibernate on every save() to this row -
+    // powers "Last Updated" on the student's My Applications page.
+    @UpdateTimestamp
+    @Column(name = "last_updated_date")
+    private LocalDateTime lastUpdatedDate;
+
     // getters and setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -47,4 +56,6 @@ public class Application {
     public void setNotes(String notes) { this.notes = notes; }
     public String getCoverLetter() { return coverLetter; }
     public void setCoverLetter(String coverLetter) { this.coverLetter = coverLetter; }
+    public LocalDateTime getLastUpdatedDate() { return lastUpdatedDate; }
+    public void setLastUpdatedDate(LocalDateTime lastUpdatedDate) { this.lastUpdatedDate = lastUpdatedDate; }
 }

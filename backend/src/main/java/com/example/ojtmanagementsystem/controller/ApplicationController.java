@@ -3,6 +3,7 @@ package com.example.ojtmanagementsystem.controller;
 import com.example.ojtmanagementsystem.dto.ApplicationDecisionRequest;
 import com.example.ojtmanagementsystem.dto.ApplicationResponse;
 import com.example.ojtmanagementsystem.dto.CreateApplicationRequest;
+import com.example.ojtmanagementsystem.dto.StudentApplicationResponse;
 import com.example.ojtmanagementsystem.service.ApplicationService;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,6 +23,26 @@ public class ApplicationController {
     @GetMapping
     public List<ApplicationResponse> getAll() {
         return applicationService.getAll();
+    }
+
+    @GetMapping("/student/{studentId}")
+    public List<ApplicationResponse> getAllForStudent(@PathVariable String studentId) {
+        return applicationService.getAllForStudent(studentId);
+    }
+
+    @GetMapping("/student/{studentId}/active")
+    public ApplicationResponse getActiveForStudent(@PathVariable String studentId) {
+        return applicationService.getActiveApplicationForStudent(studentId);
+    }
+
+    /**
+     * GET /api/applications/student/{studentId}/details
+     * Full Internship + Company detail per application - powers the
+     * student-facing "My Applications" tracking page.
+     */
+    @GetMapping("/student/{studentId}/details")
+    public List<StudentApplicationResponse> getMyApplications(@PathVariable String studentId) {
+        return applicationService.getMyApplications(studentId);
     }
 
     @PostMapping
