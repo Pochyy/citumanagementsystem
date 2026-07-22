@@ -33,11 +33,11 @@ export async function submitApplication(internship) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      studentId: Number(studentId),
+      studentId: studentId,
       internshipId: internship.id,
     }),
   });
 
   if (!res.ok) throw new Error("Failed to submit application");
   return res.json();
-}
+} 
