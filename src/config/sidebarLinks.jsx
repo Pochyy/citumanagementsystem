@@ -26,6 +26,7 @@ const sidebarLinks = {
 
   COORDINATOR: [
     { name: "Coordinator Profile", path: "/coordinator/CoordinatorProfile" },
+    { name: "Document Verification", path: "/Page/Verification/DocumentVerification" },
     { name: "Student Management", path: "/coordinator/StudentManagement" },
     { name: "Company Management", path: "/coordinator/CompanyManagement" },
     { name: "Progress Monitoring", path: "/coordinator/ProgressMonitoring" },

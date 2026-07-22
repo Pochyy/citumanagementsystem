@@ -1,8 +1,9 @@
 package com.example.ojtmanagementsystem.backend;
 
-import com.example.ojtmanagementsystem.BackendApplication;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import com.example.ojtmanagementsystem.BackendApplication;
 
 @SpringBootTest(classes = BackendApplication.class)
 class BackendApplicationTests {

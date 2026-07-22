@@ -6,6 +6,7 @@ import com.example.ojtmanagementsystem.entity.Company;
 import com.example.ojtmanagementsystem.entity.Internship;
 import com.example.ojtmanagementsystem.repository.CompanyRepository;
 import com.example.ojtmanagementsystem.repository.InternshipRepository;
+import com.example.ojtmanagementsystem.service.VerificationQueueService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,10 +25,14 @@ public class CoordinatorCompanyController {
 
     private final CompanyRepository companyRepository;
     private final InternshipRepository internshipRepository;
+    private final VerificationQueueService verificationQueueService;
 
-    public CoordinatorCompanyController(CompanyRepository companyRepository, InternshipRepository internshipRepository) {
+    public CoordinatorCompanyController(CompanyRepository companyRepository,
+                                        InternshipRepository internshipRepository,
+                                        VerificationQueueService verificationQueueService) {
         this.companyRepository = companyRepository;
         this.internshipRepository = internshipRepository;
+        this.verificationQueueService = verificationQueueService;
     }
 
     /**
@@ -77,6 +82,7 @@ public class CoordinatorCompanyController {
                 .orElseThrow(() -> new RuntimeException("Company not found with id: " + companyId));
         company.setVerificationStatus(request.getVerificationStatus());
         companyRepository.save(company);
+        verificationQueueService.syncCompanyStatus(companyId, request.getVerificationStatus());
 
         CompanyListResponse dto = new CompanyListResponse();
         dto.setCompanyId(company.getId());

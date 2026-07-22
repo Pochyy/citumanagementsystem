@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "http://localhost:3000") // matches your CRA dev server
+@CrossOrigin(originPatterns = { "http://localhost:*", "http://127.0.0.1:*" })
 public class AuthController {
 
     private final AuthService authService;

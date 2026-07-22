@@ -19,15 +19,18 @@ public class AuthService {
     private final StudentRepository studentRepository;
     private final CompanyRepository companyRepository;
     private final PasswordEncoder passwordEncoder;
+    private final VerificationQueueService verificationQueueService;
 
     public AuthService(UserRepository userRepository,
                         StudentRepository studentRepository,
                         CompanyRepository companyRepository,
-                        PasswordEncoder passwordEncoder) {
+                        PasswordEncoder passwordEncoder,
+                        VerificationQueueService verificationQueueService) {
         this.userRepository = userRepository;
         this.studentRepository = studentRepository;
         this.companyRepository = companyRepository;
         this.passwordEncoder = passwordEncoder;
+        this.verificationQueueService = verificationQueueService;
     }
 
     // ---------------- REGISTER: STUDENT ----------------
@@ -45,11 +48,12 @@ public class AuthService {
         User user = new User();
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(Role.STUDENT);
-        user.setStatus(UserStatus.ACTIVE);
+        user.setStatus(UserStatus.PENDING_REVIEW);
         user = userRepository.save(user);
 
         Student student = new Student(request.getStudentId(), user);
         studentRepository.save(student);
+        verificationQueueService.queueStudentRegistration(user, student);
 
         return UserResponse.fromEntity(user, student.getStudentId());
     }
@@ -74,9 +78,11 @@ public class AuthService {
         user = userRepository.save(user);
 
         Company company = new Company(user, request.getCompanyName());
-        companyRepository.save(company);
+        company.setEmail(request.getCompanyEmail());
+        company = companyRepository.save(company);
+        verificationQueueService.queueCompanyRegistration(user, company);
 
-        return UserResponse.fromEntity(user);
+        return UserResponse.fromEntity(user, null, company.getId());
     }
 
     // ---------------- LOGIN ----------------
@@ -106,6 +112,13 @@ public class AuthService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "This account is " + user.getStatus() + ".");
         }
 
-        return UserResponse.fromEntity(user, studentId);
+        Long companyId = null;
+        if (user.getRole() == Role.COMPANY) {
+            companyId = companyRepository.findByUser_UserId(user.getUserId())
+                    .map(Company::getId)
+                    .orElse(null);
+        }
+
+        return UserResponse.fromEntity(user, studentId, companyId);
     }
 }

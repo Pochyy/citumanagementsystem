@@ -30,6 +30,10 @@ import CoordinatorProfile from "../Components Folder/CoordinatorFolder/Coordinat
 import StudentManagement from "../Components Folder/CoordinatorFolder/Student-ManagementPage/StudentManagement";
 import CompanyManagement from "../Components Folder/CoordinatorFolder/Company-ManagementPage/CompanyManagement";
 import ProgressMonitoring from "../Components Folder/CoordinatorFolder/Progress-MonitoringPage/ProgressMonitoring";
+import DocumentVerification from "../Components Folder/CoordinatorFolder/Verification-Page/DocumentVerification";
+import StudentRequirmentVerification from "../Components Folder/CoordinatorFolder/Verification-Page/StudentRequirmentVerification";
+import CompanyDocumentVerification from "../Components Folder/CoordinatorFolder/Verification-Page/CompanyDocumentVerification";
+import { VerificationProvider } from "../Components Folder/CoordinatorFolder/Verification-Page/VerificationContext";
 
 
 import Logo from "./logo.png";
@@ -525,6 +529,30 @@ export default function MotherScreen() {
               <Route
                 path="/coordinator/ProgressMonitoring"
                 element={<ProgressMonitoring />}
+              />
+              <Route
+                path="/Page/Verification/DocumentVerification"
+                element={
+                  <VerificationProvider>
+                    <DocumentVerification />
+                  </VerificationProvider>
+                }
+              />
+              <Route
+                path="/Page/Verification/StudentRequirmentVerification"
+                element={
+                  <VerificationProvider>
+                    <StudentRequirmentVerification />
+                  </VerificationProvider>
+                }
+              />
+              <Route
+                path="/Page/Verification/CompanyDocumentVerification"
+                element={
+                  <VerificationProvider>
+                    <CompanyDocumentVerification />
+                  </VerificationProvider>
+                }
               />
 
             </Routes>

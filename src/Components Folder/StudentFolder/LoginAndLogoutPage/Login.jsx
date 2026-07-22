@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import Logo from "../../../MotherScreen/logo.png";
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
+
 // ============================================================
 // Reusable style objects
 // ============================================================
@@ -94,7 +96,7 @@ const styles = {
     fontSize: "16px",
     fontFamily: "'Iosevka Charon Mono', 'Roboto Mono', monospace",
     fontWeight: 600,
-    letterSpacing: "2px",
+    letterSpacing: "1.2px",
     marginTop: "4px",
   },
   whiteBox: {
@@ -180,9 +182,7 @@ const styles = {
   },
 };
 
-// Change this if your backend runs somewhere else, or swap for a relative
-// "/api/auth/login" if you set up a CRA proxy in package.json.
-const LOGIN_ENDPOINT = "http://localhost:8080/api/auth/login";
+const LOGIN_ENDPOINT = `${API_BASE_URL}/api/auth/login`;
 
 export default function LoginScreen({ navigate }) {
   const [loginValue, setLoginValue] = useState("");
@@ -215,8 +215,23 @@ const handleLoginSubmit = async (event) => {
       // Stash identity for the rest of the app.
       localStorage.setItem("userId", user.userId);
       localStorage.setItem("role", user.role);
+      localStorage.removeItem("studentId");
+      localStorage.removeItem("companyId");
       if (user.studentId) {
         localStorage.setItem("studentId", user.studentId);
+      }
+      if (user.companyId) {
+        localStorage.setItem("companyId", user.companyId);
+      } else if (user.role === "COMPANY") {
+        try {
+          const companyResponse = await fetch(`${API_BASE_URL}/api/companies/by-user/${user.userId}`);
+          if (companyResponse.ok) {
+            const company = await companyResponse.json();
+            localStorage.setItem("companyId", company.companyId);
+          }
+        } catch {
+          // The company profile page can still load by userId; uploads need companyId.
+        }
       }
 
       // Route by role. Swap these paths for whatever your router actually uses.
@@ -276,7 +291,7 @@ const handleLoginSubmit = async (event) => {
 
           <div style={styles.welcomeRow}>
             <h1 style={styles.welcomeTitle}>Welcome Back!</h1>
-            <div style={styles.welcomeSubtitle}>words words words words</div>
+            <div style={styles.welcomeSubtitle}>Access your OJT workspace</div>
           </div>
 
           <form style={styles.whiteBox} onSubmit={handleLoginSubmit}>

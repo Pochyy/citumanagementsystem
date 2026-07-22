@@ -4,7 +4,8 @@ import PendingView from "./PendingView";
 import VerifiedView from "./VerifiedView";
 import CSS from "./verificationStyles";
 
-const VERIFICATION_API = "http://localhost:8080/api/verification";
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
+const VERIFICATION_API = `${API_BASE_URL}/api/verification`;
 
 export default function VerificationForm() {
   const companyId = localStorage.getItem("companyId");

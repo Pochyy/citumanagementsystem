@@ -1,10 +1,16 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Logo from "../../../MotherScreen/logo.png";
 
-// ============================================================
-// Reusable style objects
-// Mirrors the Login Page so both screens share the same design language.
-// ============================================================
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
+
+const companyDocumentTypes = [
+  { id: "moa", label: "Memorandum of Agreement" },
+  { id: "businessPermit", label: "Business Permit" },
+  { id: "accreditationLetter", label: "Accreditation Letter" },
+  { id: "trainingPlan", label: "Training Plan" },
+];
+
 const styles = {
   globalHeader: {
     width: "100%",
@@ -14,6 +20,7 @@ const styles = {
     display: "flex",
     alignItems: "center",
     paddingLeft: "18px",
+    boxSizing: "border-box",
   },
   headerLogo: {
     width: "95px",
@@ -35,7 +42,6 @@ const styles = {
     lineHeight: "1.1",
     whiteSpace: "nowrap",
   },
-
   mainContent: {
     width: "100%",
     minHeight: "calc(100vh - 120px)",
@@ -46,7 +52,6 @@ const styles = {
     boxSizing: "border-box",
     padding: "40px 20px",
   },
-
   cardOuter: {
     position: "relative",
     width: "100%",
@@ -92,10 +97,10 @@ const styles = {
   },
   welcomeSubtitle: {
     color: "#FDEDEA",
-    fontSize: "16px",
+    fontSize: "14px",
     fontFamily: "'Iosevka Charon Mono', 'Roboto Mono', monospace",
     fontWeight: 600,
-    letterSpacing: "1.4px",
+    letterSpacing: "1.2px",
     marginTop: "4px",
   },
   whiteBox: {
@@ -106,13 +111,11 @@ const styles = {
     border: "1px solid #d8d8d8",
     borderRadius: "10px",
     boxShadow: "0 6px 18px rgba(0,0,0,0.15)",
-    padding: "24px 28px 18px 28px",
+    padding: "24px 28px 18px",
     boxSizing: "border-box",
     maxHeight: "calc(100vh - 140px)",
     overflowY: "auto",
   },
-
-  // ---------------- Account type selection ----------------
   typeSelectRow: {
     display: "flex",
     gap: "16px",
@@ -128,7 +131,6 @@ const styles = {
     gap: "10px",
     cursor: "pointer",
     backgroundColor: "#ffffff",
-    transition: "border-color 0.15s ease",
   },
   typeIcon: {
     width: "42px",
@@ -148,12 +150,10 @@ const styles = {
     fontWeight: 700,
   },
   typeHelperText: {
-    color: "#9a9a9a",
+    color: "#777",
     fontSize: "11px",
     textAlign: "center",
   },
-
-  // ---------------- Form ----------------
   backLink: {
     color: "#7B1113",
     fontSize: "13px",
@@ -183,13 +183,48 @@ const styles = {
     boxSizing: "border-box",
     outline: "none",
   },
+  uploadSectionTitle: {
+    color: "#7B1113",
+    fontSize: "14px",
+    fontWeight: 700,
+    margin: "18px 0 4px",
+  },
+  uploadSectionHint: {
+    color: "#777",
+    fontSize: "11px",
+    marginBottom: "12px",
+    lineHeight: 1.45,
+  },
+  uploadRow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#f4f4f4",
+    borderRadius: "6px",
+    padding: "10px 12px",
+    marginBottom: "8px",
+    gap: "10px",
+  },
+  uploadRowLabel: {
+    color: "#333333",
+    fontSize: "13px",
+    fontWeight: 600,
+  },
+  requiredBadge: {
+    backgroundColor: "#FBEDEE",
+    color: "#7B1113",
+    border: "1px solid #E7C3C6",
+    borderRadius: "999px",
+    padding: "5px 12px",
+    fontSize: "11px",
+    fontWeight: 700,
+    whiteSpace: "nowrap",
+  },
   errorText: {
     color: "#B23F41",
     fontSize: "12px",
     marginTop: "6px",
   },
-
-  // ---------------- Buttons ----------------
   buttonsRow: {
     display: "flex",
     gap: "14px",
@@ -223,8 +258,6 @@ const styles = {
     fontWeight: 700,
     cursor: "pointer",
   },
-
-  // ---------------- Success popup / modal ----------------
   modalOverlay: {
     position: "fixed",
     top: 0,
@@ -243,7 +276,7 @@ const styles = {
     borderRadius: "10px",
     width: "100%",
     maxWidth: "380px",
-    padding: "32px 28px 26px 28px",
+    padding: "32px 28px 26px",
     boxSizing: "border-box",
     boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
     textAlign: "center",
@@ -268,7 +301,7 @@ const styles = {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    margin: "0 auto 18px auto",
+    margin: "0 auto 18px",
   },
   successIcon: {
     color: "#2E9E5B",
@@ -279,7 +312,7 @@ const styles = {
     color: "#7B1113",
     fontSize: "19px",
     fontWeight: 700,
-    margin: "0 0 10px 0",
+    margin: "0 0 10px",
   },
   modalMessage: {
     color: "#555555",
@@ -301,39 +334,41 @@ const styles = {
   },
 };
 
-// Change these if your backend runs somewhere else, or swap for relative
-// paths ("/api/auth/...") if you set up a CRA proxy in package.json.
-const REGISTER_STUDENT_ENDPOINT = "http://localhost:8080/api/auth/register/student";
-const REGISTER_COMPANY_ENDPOINT = "http://localhost:8080/api/auth/register/company";
+export default function RegisterScreen({ navigate: navigateProp } = {}) {
+  const routerNavigate = useNavigate();
+  const navigate = navigateProp || routerNavigate;
 
-export default function RegisterScreen({ navigate }) {
-  // Which account type the user picked: null | "student" | "company"
   const [accountType, setAccountType] = useState(null);
-
-  // Student form fields
   const [studentId, setStudentId] = useState("");
   const [studentPassword, setStudentPassword] = useState("");
   const [studentConfirmPassword, setStudentConfirmPassword] = useState("");
-
-  // Company form fields
   const [companyName, setCompanyName] = useState("");
   const [companyEmail, setCompanyEmail] = useState("");
   const [companyPassword, setCompanyPassword] = useState("");
   const [companyConfirmPassword, setCompanyConfirmPassword] = useState("");
-
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [registerError, setRegisterError] = useState(null);
+  const [registerError, setRegisterError] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  const goToLogin = () => navigate("/Page/LoginScreen/");
 
   const handleChangeAccountType = () => {
     setAccountType(null);
-    setRegisterError(null);
+    setRegisterError("");
   };
 
-  // Backend: Register student account -> POST /api/auth/register/student
+  const readErrorMessage = async (response, fallback) => {
+    try {
+      const payload = await response.json();
+      return payload.detail || payload.message || payload.error || fallback;
+    } catch {
+      return fallback;
+    }
+  };
+
   const handleStudentRegisterSubmit = async (event) => {
     event.preventDefault();
-    setRegisterError(null);
+    setRegisterError("");
 
     if (studentPassword !== studentConfirmPassword) {
       setRegisterError("Passwords do not match.");
@@ -342,7 +377,7 @@ export default function RegisterScreen({ navigate }) {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch(REGISTER_STUDENT_ENDPOINT, {
+      const response = await fetch(`${API_BASE_URL}/api/auth/register/student`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -353,27 +388,20 @@ export default function RegisterScreen({ navigate }) {
       });
 
       if (!response.ok) {
-        const message =
-          response.status === 409
-            ? "This Student ID is already registered."
-            : response.status === 400
-            ? "Please check your Student ID and password."
-            : "Something went wrong registering your account.";
-        throw new Error(message);
+        throw new Error(await readErrorMessage(response, "Unable to register student account."));
       }
 
       setShowSuccessModal(true);
     } catch (err) {
-      setRegisterError(err.message || "Something went wrong registering your account.");
+      setRegisterError(err.message || "Unable to connect to the registration API.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Backend: Register company account -> POST /api/auth/register/company
   const handleCompanyRegisterSubmit = async (event) => {
     event.preventDefault();
-    setRegisterError(null);
+    setRegisterError("");
 
     if (companyPassword !== companyConfirmPassword) {
       setRegisterError("Passwords do not match.");
@@ -382,7 +410,7 @@ export default function RegisterScreen({ navigate }) {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch(REGISTER_COMPANY_ENDPOINT, {
+      const response = await fetch(`${API_BASE_URL}/api/auth/register/company`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -394,39 +422,34 @@ export default function RegisterScreen({ navigate }) {
       });
 
       if (!response.ok) {
-        const message =
-          response.status === 409
-            ? "This email is already registered."
-            : response.status === 400
-            ? "Please check your company details and password."
-            : "Something went wrong registering your company.";
-        throw new Error(message);
+        throw new Error(await readErrorMessage(response, "Unable to register company account."));
       }
 
       setShowSuccessModal(true);
     } catch (err) {
-      setRegisterError(err.message || "Something went wrong registering your company.");
+      setRegisterError(err.message || "Unable to connect to the registration API.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleCloseSuccessModal = () => {
-    setShowSuccessModal(false);
-    navigate
-      ? navigate("/Page/LoginScreen/")
-      : (window.location.href = "/Page/LoginScreen/");
-  };
-
-  const handleLoginLinkClick = () => {
-    navigate
-      ? navigate("/Page/LoginScreen/")
-      : (window.location.href = "/Page/LoginScreen/");
-  };
+  const renderSubmitButton = () => (
+    <div style={styles.buttonsRow}>
+      <button
+        type="submit"
+        style={{
+          ...styles.registerButton,
+          ...(isSubmitting ? styles.registerButtonDisabled : {}),
+        }}
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? "Registering..." : "Register"}
+      </button>
+    </div>
+  );
 
   return (
     <div className="inner-container" style={{ minHeight: "100vh" }}>
-      {/* ================= HEADER ================= */}
       <div className="global-header" style={styles.globalHeader}>
         <img src={Logo} alt="CIT-U Logo" style={styles.headerLogo} />
 
@@ -436,21 +459,18 @@ export default function RegisterScreen({ navigate }) {
         </div>
       </div>
 
-      {/* ================= BODY (GRADIENT BACKGROUND) ================= */}
       <div className="main-content" style={styles.mainContent}>
-        {/* ================= REGISTER CARD ================= */}
         <div className="register-card" style={styles.cardOuter}>
           <div style={styles.logoCircle}>
             <img src={Logo} alt="CIT University" style={styles.logoImage} />
           </div>
 
           <div style={styles.welcomeRow}>
-            <h1 style={styles.welcomeTitle}>Create Account!</h1>
-            <div style={styles.welcomeSubtitle}>words words words words</div>
+            <h1 style={styles.welcomeTitle}>Create Account</h1>
+            <div style={styles.welcomeSubtitle}>Start your OJT verification</div>
           </div>
 
           <div style={styles.whiteBox}>
-            {/* ================= ACCOUNT TYPE SELECTION ================= */}
             {accountType === null && (
               <div className="account-type-select">
                 <div style={styles.fieldLabel}>I am registering as a:</div>
@@ -458,7 +478,7 @@ export default function RegisterScreen({ navigate }) {
                   <div style={styles.typeCard} onClick={() => setAccountType("student")}>
                     <div style={styles.typeIcon}>S</div>
                     <div style={styles.typeLabel}>Student</div>
-                    <div style={styles.typeHelperText}>Register using your Student ID</div>
+                    <div style={styles.typeHelperText}>Use your Student ID</div>
                   </div>
 
                   <div style={styles.typeCard} onClick={() => setAccountType("company")}>
@@ -470,18 +490,17 @@ export default function RegisterScreen({ navigate }) {
 
                 <div style={styles.loginTextRow}>
                   <span style={styles.loginText}>Already have an account? </span>
-                  <span style={styles.loginLink} onClick={handleLoginLinkClick}>
-                    Log in!
+                  <span style={styles.loginLink} onClick={goToLogin}>
+                    Log in
                   </span>
                 </div>
               </div>
             )}
 
-            {/* ================= STUDENT REGISTRATION FORM ================= */}
             {accountType === "student" && (
               <form onSubmit={handleStudentRegisterSubmit}>
                 <span style={styles.backLink} onClick={handleChangeAccountType}>
-                  ← Back to account type selection
+                  &lt;- Back to account type selection
                 </span>
 
                 <div style={styles.fieldGroup}>
@@ -491,6 +510,7 @@ export default function RegisterScreen({ navigate }) {
                     style={styles.input}
                     value={studentId}
                     onChange={(e) => setStudentId(e.target.value)}
+                    required
                   />
                 </div>
 
@@ -501,6 +521,7 @@ export default function RegisterScreen({ navigate }) {
                     style={styles.input}
                     value={studentPassword}
                     onChange={(e) => setStudentPassword(e.target.value)}
+                    required
                   />
                 </div>
 
@@ -511,31 +532,19 @@ export default function RegisterScreen({ navigate }) {
                     style={styles.input}
                     value={studentConfirmPassword}
                     onChange={(e) => setStudentConfirmPassword(e.target.value)}
+                    required
                   />
                 </div>
 
                 {registerError && <div style={styles.errorText}>{registerError}</div>}
-
-                <div style={styles.buttonsRow}>
-                  <button
-                    type="submit"
-                    style={{
-                      ...styles.registerButton,
-                      ...(isSubmitting ? styles.registerButtonDisabled : {}),
-                    }}
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? "Registering..." : "Register"}
-                  </button>
-                </div>
+                {renderSubmitButton()}
               </form>
             )}
 
-            {/* ================= COMPANY REGISTRATION FORM ================= */}
             {accountType === "company" && (
               <form onSubmit={handleCompanyRegisterSubmit}>
                 <span style={styles.backLink} onClick={handleChangeAccountType}>
-                  ← Back to account type selection
+                  &lt;- Back to account type selection
                 </span>
 
                 <div style={styles.fieldGroup}>
@@ -545,6 +554,7 @@ export default function RegisterScreen({ navigate }) {
                     style={styles.input}
                     value={companyName}
                     onChange={(e) => setCompanyName(e.target.value)}
+                    required
                   />
                 </div>
 
@@ -555,6 +565,7 @@ export default function RegisterScreen({ navigate }) {
                     style={styles.input}
                     value={companyEmail}
                     onChange={(e) => setCompanyEmail(e.target.value)}
+                    required
                   />
                 </div>
 
@@ -565,6 +576,7 @@ export default function RegisterScreen({ navigate }) {
                     style={styles.input}
                     value={companyPassword}
                     onChange={(e) => setCompanyPassword(e.target.value)}
+                    required
                   />
                 </div>
 
@@ -575,57 +587,56 @@ export default function RegisterScreen({ navigate }) {
                     style={styles.input}
                     value={companyConfirmPassword}
                     onChange={(e) => setCompanyConfirmPassword(e.target.value)}
+                    required
                   />
                 </div>
 
-                {registerError && <div style={styles.errorText}>{registerError}</div>}
-
-                <div style={styles.buttonsRow}>
-                  <button
-                    type="submit"
-                    style={{
-                      ...styles.registerButton,
-                      ...(isSubmitting ? styles.registerButtonDisabled : {}),
-                    }}
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? "Registering..." : "Register"}
-                  </button>
+                <div style={styles.uploadSectionTitle}>Verification Documents</div>
+                <div style={styles.uploadSectionHint}>
+                  These requirements are queued for coordinator review after registration.
                 </div>
+
+                {companyDocumentTypes.map((doc) => (
+                  <div key={doc.id} style={styles.uploadRow}>
+                    <span style={styles.uploadRowLabel}>{doc.label}</span>
+                    <span style={styles.requiredBadge}>Required</span>
+                  </div>
+                ))}
+
+                {registerError && <div style={styles.errorText}>{registerError}</div>}
+                {renderSubmitButton()}
               </form>
             )}
           </div>
         </div>
       </div>
 
-      {/* ================= REGISTRATION SUCCESS MODAL ================= */}
       {showSuccessModal && (
-        <div style={styles.modalOverlay} onClick={handleCloseSuccessModal}>
+        <div style={styles.modalOverlay} onClick={goToLogin}>
           <div style={styles.modalCard} onClick={(e) => e.stopPropagation()}>
-            <button style={styles.modalCloseButton} onClick={handleCloseSuccessModal}>
-              ✕
+            <button style={styles.modalCloseButton} onClick={goToLogin}>
+              x
             </button>
 
             <div style={styles.successIconWrapper}>
-              <span style={styles.successIcon}>✓</span>
+              <span style={styles.successIcon}>OK</span>
             </div>
 
-            <h2 style={styles.modalTitle}>Registration Successful!</h2>
+            <h2 style={styles.modalTitle}>Registration Successful</h2>
 
             {accountType === "student" ? (
               <p style={styles.modalMessage}>
-                Your student account has been created successfully. You may now log
-                in using your Student ID and password.
+                Your student account was created. Required student documents are now pending
+                coordinator verification.
               </p>
             ) : (
               <p style={styles.modalMessage}>
-                Your company account has been successfully registered. Your
-                account will be reviewed by the Internship Coordinator before it
-                is verified and gains full access to the system.
+                Your company account was created. Required company documents are now pending
+                coordinator verification.
               </p>
             )}
 
-            <button style={styles.modalContinueButton} onClick={handleCloseSuccessModal}>
+            <button style={styles.modalContinueButton} onClick={goToLogin}>
               Continue to Login
             </button>
           </div>
