@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { resolveCompanyId, fetchInternshipStats } from "./Internship/internshipApi";
 
-// Field names match InternshipStatsResponse (GET /api/internships/company/{companyId}/stats):
-// currentlyOpen -> Active Internships, totalApplicants -> Total Applicants,
-// totalSlots -> Slots Remaining (sum of each internship's current availableSlots).
+
 const emptyStats = {
   currentlyOpen: 0,
   totalApplicants: 0,

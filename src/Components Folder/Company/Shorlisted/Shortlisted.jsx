@@ -1,26 +1,6 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { getAllApplicants, decideApplicant } from "../Application/ApplicationsStore";
 import ShortlistedItem from "./ShortlistedItem";
-
-const shortlisted = [
-  {
-    id: 1,
-    name: "Jennie Rose",
-    appliedDate: "Applied Mar 5",
-    appliedFor: "Software Engineering",
-    shortlistedOn: "Mar 6 2026",
-    school: "UP Diliman",
-    status: "Accepted",
-  },
-  {
-    id: 2,
-    name: "Paul Ferdinand",
-    appliedDate: "Applied Mar 3",
-    appliedFor: "UI/UX Design",
-    shortlistedOn: "Mar 4 2026",
-    school: "DLSU Manila",
-    status: "Accepted",
-  },
-];
 
 const styles = {
   page: {
@@ -52,33 +32,62 @@ const styles = {
 };
 
 const ShortlistedPage = () => {
+  const [applicants, setApplicants] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = () => {
+    setLoading(true);
+    getAllApplicants()
+      .then(setApplicants)
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const shortlisted = applicants.filter(
+    (a) => a.status === "Shortlisted" || a.status === "Accepted"
+  );
+
+  const handleAccept = async (id) => {
+    await decideApplicant(id, "accepted");
+    load();
+  };
+
   return (
     <div style={styles.page}>
       <h1 style={styles.title}>Shortlisted</h1>
 
-      <table style={styles.table}>
-        <thead>
-          <tr>
-            <th style={styles.th}>Applicant</th>
-            <th style={styles.th}>Applied For</th>
-            <th style={styles.th}>Shortlisted On</th>
-            <th style={styles.th}>School</th>
-            <th style={styles.th}>Action</th>
-          </tr>
-        </thead>
+      {loading && <p>Loading…</p>}
 
-        <tbody>
-          {shortlisted.map((applicant, index) => (
-            <ShortlistedItem
-              key={applicant.id}
-              applicant={applicant}
-              index={index}
-            />
-          ))}
-        </tbody>
-      </table>
+      {!loading && (
+        <table style={styles.table}>
+          <thead>
+            <tr>
+              <th style={styles.th}>Applicant</th>
+              <th style={styles.th}>Applied For</th>
+              <th style={styles.th}>Shortlisted On</th>
+              <th style={styles.th}>School</th>
+              <th style={styles.th}>Action</th>
+            </tr>
+          </thead>
 
-      {shortlisted.length === 0 && (
+          <tbody>
+            {shortlisted.map((applicant, index) => (
+              <ShortlistedItem
+                key={applicant.id}
+                applicant={applicant}
+                index={index}
+                onAccept={() => handleAccept(applicant.id)}
+              />
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      {!loading && shortlisted.length === 0 && (
         <p>No shortlisted applicants yet.</p>
       )}
     </div>

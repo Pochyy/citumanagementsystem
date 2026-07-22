@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from "react";
-import CompanyStats from "./CompanyStats"; // adjust path to wherever CompanyStats.jsx lives
-
+import CompanyStats from "./CompanyStats"; 
 const API_BASE = "http://localhost:8080/api/company";
 
-// Field metadata: key on the Company entity, label, and whether it's a textarea.
-// (kept from the edit-form version so every backend field is editable)
+
 const profileFields = [
   { key: "companyName", label: "Company Name" },
   { key: "tagline", label: "Tagline" },
@@ -39,7 +37,6 @@ export default function CompanyProfile() {
   const [errorMessage, setErrorMessage] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
 
-  // Set at Login.jsx on a successful login, e.g. localStorage.setItem("userId", response.userId)
   const userId = localStorage.getItem("userId");
 
   useEffect(() => {
@@ -71,16 +68,14 @@ export default function CompanyProfile() {
         throw new Error(`Failed to load company profile (server responded ${res.status}).`);
       }
 
-      // A Company row is created at registration, so this should always
-      // return data - fall back to blank only if something unexpected happens.
+      
       const text = await res.text();
       const data = text ? JSON.parse(text) : null;
       const loaded = data ?? emptyCompany;
       setCompany(loaded);
       setFormValues(loaded);
     } catch (err) {
-      // A TypeError here almost always means the request never reached the
-      // server at all (backend down, wrong port, or blocked by CORS).
+      
       const message =
         err instanceof TypeError
           ? "Couldn't reach the server. Make sure the backend is running and check your CORS/port settings."

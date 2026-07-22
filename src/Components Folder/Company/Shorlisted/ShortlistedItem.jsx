@@ -71,11 +71,18 @@ const styles = {
     borderRadius: "6px",
     padding: "8px 18px",
     fontWeight: 600,
+    cursor: "pointer",
+  },
+
+  buttonDisabled: {
+    background: "#9dd8b6",
+    cursor: "default",
   },
 };
 
-const ShortlistedItem = ({ applicant, index }) => {
+const ShortlistedItem = ({ applicant, index, onAccept }) => {
   const avatar = avatarPalette[index % avatarPalette.length];
+  const isAccepted = applicant.status === "Accepted";
 
   return (
     <tr>
@@ -102,16 +109,25 @@ const ShortlistedItem = ({ applicant, index }) => {
 
       <td style={styles.td}>{applicant.appliedFor}</td>
 
-      <td style={styles.td}>{applicant.shortlistedOn}</td>
+      <td style={styles.td}>
+        {applicant.shortlistedOn || "—"}
+      </td>
 
       <td style={styles.td}>{applicant.school}</td>
 
       <td style={styles.td}>
         <div style={styles.action}>
-          <div style={styles.check}>✓</div>
+          {isAccepted && <div style={styles.check}>✓</div>}
 
-          <button style={styles.button}>
-            {applicant.status}
+          <button
+            style={{
+              ...styles.button,
+              ...(isAccepted ? styles.buttonDisabled : {}),
+            }}
+            onClick={isAccepted ? undefined : onAccept}
+            disabled={isAccepted}
+          >
+            {isAccepted ? "Accepted" : "Accept"}
           </button>
         </div>
       </td>

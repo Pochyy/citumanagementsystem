@@ -1,5 +1,7 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import InternshipOpportunityCard from "./InternshipOpportunityCard";
+import { fetchOpenInternships } from "./internshipApi";
+
 // Reusable style objects for the InternshipOpportunitiesPage.
 // Keeping these at the top makes the JSX below easier to read and maintain.
 const styles = {
@@ -56,46 +58,107 @@ const styles = {
     display: "flex",
     flexDirection: "column",
   },
+  statusText: {
+    color: "#666",
+    marginBottom: "16px",
+  },
+  errorText: {
+    color: "#b3261e",
+    marginBottom: "16px",
+  },
 };
+
+// Computes a rough "posted N days ago" number from any date-ish field the
+// backend gives us. Returns null if there's nothing usable, so the card can
+// fall back to a generic label instead of showing "Posted null days ago".
+function daysAgo(dateString) {
+  if (!dateString) return null;
+  const posted = new Date(dateString);
+  if (Number.isNaN(posted.getTime())) return null;
+  const diffMs = Date.now() - posted.getTime();
+  return Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+}
+
+// Maps a raw internship record from the backend into the exact shape
+// InternshipOpportunityCard expects. Backend field names are guessed based
+// on the CreateInternship.jsx submit payload (positionTitle, department,
+// duration, jobDescription, requiredSkills, workSetup, etc). Adjust the
+// left-hand fallbacks below if your actual API response uses different keys.
+function mapInternshipToOpportunity(internship) {
+  const postedSource =
+    internship.postedDate || internship.createdAt || internship.startDate;
+
+  return {
+    id: internship.id,
+    title: internship.positionTitle || internship.position || "Untitled Position",
+    companyName:
+      internship.companyName || internship.company?.name || "Company",
+    description: internship.jobDescription || internship.description || "",
+    // No dedicated "location" field exists in the current post-internship
+    // form, so this falls back to the work setup until that's added.
+    location: internship.location || internship.workSetup || "Not specified",
+    duration: internship.duration || "Not specified",
+    // Compensation isn't collected by CreateInternship.jsx yet either.
+    compensation: internship.compensation || "Not specified",
+    requiredSkills: internship.requiredSkills || [],
+    status: internship.workSetup || internship.status || "Open",
+    postedDaysAgo: daysAgo(postedSource),
+  };
+}
 
 // InternshipOpportunitiesPage
 // Main page responsible for the overall layout: header, search/filter section,
-// and the list of internship opportunity cards.
+// and the list of internship opportunity cards, backed by live data from
+// GET /api/internships/open.
 const InternshipOpportunitiesPage = () => {
-  // Replace this temporary array with internship data fetched from the database/API
-  // Example (once backend is connected):
-  // const [internships, setInternships] = useState([]);
-  // useEffect(() => {
-  //   fetchInternships().then(setInternships);
-  // }, []);
-  const temporaryInternships = [
-    {
-      id: 1,
-      title: "Software Development Intern",
-      companyName: "Tech Innovations Inc.",
-      companyLogo: null,
-      description: "Join our development team to work on cutting-edge web applications.",
-      location: "Cebu City, Philippines",
-      duration: "3 Months",
-      compensation: "₱15,000/month",
-      requiredSkills: ["3rd or 4th Year", "Knowledge in React/Node.js", "Good communication skills"],
-      status: "Onsite",
-      postedDaysAgo: 2,
-    },
-    {
-      id: 2,
-      title: "Software Development Intern",
-      companyName: "Tech Innovations Inc.",
-      companyLogo: null,
-      description: "Join our development team to work on cutting-edge web applications.",
-      location: "Cebu City, Philippines",
-      duration: "3 Months",
-      compensation: "₱15,000/month",
-      requiredSkills: [],
-      status: "Onsite",
-      postedDaysAgo: 2,
-    },
-  ];
+  const [internships, setInternships] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await fetchOpenInternships();
+        if (!cancelled) setInternships(Array.isArray(data) ? data : []);
+      } catch (err) {
+        if (!cancelled) {
+          setError(err.message || "Failed to load internship opportunities.");
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const opportunities = useMemo(
+    () => internships.map(mapInternshipToOpportunity),
+    [internships]
+  );
+
+  const filteredOpportunities = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) return opportunities;
+    return opportunities.filter((opportunity) =>
+      [
+        opportunity.title,
+        opportunity.companyName,
+        opportunity.description,
+        ...(opportunity.requiredSkills || []),
+      ]
+        .filter(Boolean)
+        .some((field) => field.toLowerCase().includes(term))
+    );
+  }, [opportunities, searchTerm]);
 
   return (
     <div style={styles.page}>
@@ -105,34 +168,40 @@ const InternshipOpportunitiesPage = () => {
       </div>
       <p style={styles.subtitle}>Browse and apply for available internship positions</p>
 
-      {/* Future functionality: Search/filter section should connect to the database filtering/query system */}
       <div style={styles.searchWrapper}>
         <span style={styles.searchIcon}>🔍</span>
         <input
           type="text"
           placeholder="Search for Opportunities..."
           style={styles.searchInput}
-          onChange={() => {
-            // Future functionality: trigger a filtered/query request to the backend as the user types
-          }}
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
 
+      {loading && <p style={styles.statusText}>Loading internship opportunities...</p>}
+      {error && <p style={styles.errorText}>{error}</p>}
+
+      {!loading && !error && filteredOpportunities.length === 0 && (
+        <p style={styles.statusText}>
+          {searchTerm
+            ? "No opportunities match your search."
+            : "No internship opportunities are open right now."}
+        </p>
+      )}
+
       <div style={styles.listWrapper}>
-        {/* Later render internship opportunities using .map() over data fetched from the database/API */}
-        {temporaryInternships.map((internship) => (
-          <InternshipOpportunityCard key={internship.id} internship={internship} />
-        ))}
+        {!loading &&
+          !error &&
+          filteredOpportunities.map((opportunity) => (
+            <InternshipOpportunityCard key={opportunity.id} internship={opportunity} />
+          ))}
       </div>
 
       {/*
         Future functionality: Pagination / Load More
-        Once the database is connected, add a control here to retrieve additional
-        internship records (either paginated requests or infinite scroll).
-        Example:
-        <button style={styles.loadMoreButton} onClick={() => fetchMoreInternships()}>
-          Load More
-        </button>
+        Once you're dealing with many open internships, add a control here
+        to page through additional results instead of loading everything at once.
       */}
     </div>
   );

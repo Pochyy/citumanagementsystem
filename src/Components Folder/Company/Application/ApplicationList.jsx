@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from "react";
-import applicants from "./applicantsData";
+import React, { useEffect, useMemo, useState } from "react";
+import { getAllApplicants } from "./ApplicationsStore";
 import ApplicationItem from "./ApplicationItem";
 
 const styles = {
@@ -51,6 +51,17 @@ const styles = {
 };
 
 export default function ApplicationListPage() {
+  const [applicants, setApplicants] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    getAllApplicants()
+      .then(setApplicants)
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, []);
+
   const [internshipFilter, setInternshipFilter] =
     useState("All internships");
 
@@ -62,7 +73,7 @@ export default function ApplicationListPage() {
       "All internships",
       ...new Set(applicants.map((a) => a.appliedFor)),
     ],
-    []
+    [applicants]
   );
 
   const statusOptions = [
@@ -116,29 +127,34 @@ export default function ApplicationListPage() {
         </div>
       </div>
 
-      <table style={styles.table}>
-        <thead>
-          <tr>
-            <th style={styles.th}>Applicant</th>
-            <th style={styles.th}>Applied For</th>
-            <th style={styles.th}>Course</th>
-            <th style={styles.th}>School</th>
-            <th style={styles.th}>Status</th>
-          </tr>
-        </thead>
+      {loading && <p>Loading applications…</p>}
+      {error && <p style={{ color: "#b3261e" }}>Error: {error}</p>}
 
-        <tbody>
-          {filtered.map((applicant, index) => (
-            <ApplicationItem
-              key={applicant.id}
-              applicant={applicant}
-              index={index}
-            />
-          ))}
-        </tbody>
-      </table>
+      {!loading && !error && (
+        <table style={styles.table}>
+          <thead>
+            <tr>
+              <th style={styles.th}>Applicant</th>
+              <th style={styles.th}>Applied For</th>
+              <th style={styles.th}>Course</th>
+              <th style={styles.th}>School</th>
+              <th style={styles.th}>Status</th>
+            </tr>
+          </thead>
 
-      {filtered.length === 0 && (
+          <tbody>
+            {filtered.map((applicant, index) => (
+              <ApplicationItem
+                key={applicant.id}
+                applicant={applicant}
+                index={index}
+              />
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      {!loading && !error && filtered.length === 0 && (
         <p>No applications found.</p>
       )}
     </div>

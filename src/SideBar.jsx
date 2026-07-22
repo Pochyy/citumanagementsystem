@@ -32,7 +32,7 @@ export default function SideBar() {
       <Link to="/component-8">Messages</Link><br />
       <Link to="/component-9">Notifications</Link><br />
       <Link to="/component-10">Profile Page</Link><br />
-
+      <Link to="/components-11">Opportunities Page</Link><br />
     </div>
 
       );

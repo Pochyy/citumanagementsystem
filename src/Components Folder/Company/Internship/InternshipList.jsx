@@ -88,9 +88,7 @@ const InternshipList = ({ internship }) => {
     };
 
   const goToSlotManagement = () => {
-    // SlotManagementPage reads :internshipId from the URL and this state
-    // to show just this internship's slots (falls back to demo data if
-    // someone opens /component-6 without navigating from here).
+    
     navigate(`/component-6/${internship.id}`, {
       state: {
         position: internship.position,

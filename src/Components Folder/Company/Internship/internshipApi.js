@@ -1,12 +1,7 @@
-// Talks to the Spring Boot backend for internship postings.
-// Adjust API_BASE_URL if your backend runs on a different port.
+
 const API_BASE_URL = "http://localhost:8080";
 
-/**
- * Login only stores userId + role (see LoginScreen.jsx), not companyId.
- * This resolves userId -> companyId via GET /api/companies/by-user/{userId}
- * and caches it in localStorage so we don't hit the backend on every page load.
- */
+
 export async function resolveCompanyId() {
   const cached = localStorage.getItem("companyId");
   if (cached) return Number(cached);

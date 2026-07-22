@@ -14,7 +14,7 @@ import NotificationDetails from "../Components Folder/Company/Notification/Notif
 import LoginScreen from "../Components Folder/StudentFolder/LoginAndLogoutPage/Login";
 import RegisterScreen from "../Components Folder/StudentFolder/LoginAndLogoutPage/Register";
 import ProfilePage from "../Components Folder/StudentFolder/Student-Profile-Page/ProfilePage";
-
+import OpportunitiesPage from "../Components Folder/StudentFolder/OpportunitiesPage/OpportunitiesPage";
 
 
 import Logo from "./logo.png";
@@ -281,7 +281,7 @@ export default function MotherScreen() {
                 <Route path="/component-9" element={<Notifications/>} />
                 <Route path="/component-9/:notificationId" element={<NotificationDetails/>} />
                 <Route path="/component-10" element={<ProfilePage/>} /> 
-                
+                <Route path="/components-11" element={<OpportunitiesPage/>} />
             </Routes>
             
             </div>

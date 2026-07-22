@@ -1,5 +1,5 @@
-import React from "react";
-
+import React, { useState } from "react";
+import { submitApplication } from "../../Company/Application/ApplicationsStore";
 // Reusable style objects for the InternshipOpportunityCard component.
 // Keeping these at the top makes the JSX below easier to read and maintain.
 const styles = {
@@ -88,42 +88,79 @@ const styles = {
     fontWeight: 600,
     cursor: "pointer",
   },
+  applyButtonApplied: {
+    backgroundColor: "#4a9b6e",
+    cursor: "default",
+  },
+  successMessage: {
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+    color: "#1a7f4e",
+    fontSize: "12.5px",
+    fontWeight: 600,
+    textAlign: "right",
+  },
+  errorMessage: {
+    color: "#b3261e",
+    fontSize: "12.5px",
+    fontWeight: 600,
+    textAlign: "right",
+  },
 };
+
+function postedLabel(postedDaysAgo) {
+  if (postedDaysAgo === null || postedDaysAgo === undefined) return "Posted recently";
+  if (postedDaysAgo === 0) return "Posted today";
+  if (postedDaysAgo === 1) return "Posted 1 day ago";
+  return `Posted ${postedDaysAgo} days ago`;
+}
 
 // InternshipOpportunityCard
 // Reusable presentational component for a single internship listing.
 // Intended to be reused across the Student Dashboard, Saved Internships,
 // Search Results, and Featured Listings pages.
 const InternshipOpportunityCard = ({ internship }) => {
+  const [applying, setApplying] = useState(false);
+  const [applied, setApplied] = useState(false);
+  const [applyError, setApplyError] = useState(null);
+
+  // Records this application (so it shows up on the company's Application
+  // List page, pulling the student's real profile data) and shows a
+  // confirmation right here on the card. Students don't have access to the
+  // company-side Application List, so we don't navigate them there.
+  const handleApply = async () => {
+    if (applied || applying) return;
+    setApplying(true);
+    setApplyError(null);
+    try {
+      await submitApplication(internship);
+      setApplied(true);
+    } catch (err) {
+      setApplyError("Something went wrong. Please try again.");
+    } finally {
+      setApplying(false);
+    }
+  };
+
   return (
     <div style={styles.card}>
-      {/* Database: internship.id -> used as the unique key/reference when this card is rendered in a list */}
-
       <div style={styles.leftColumn}>
-        {/* Database: internship.title */}
         <h3 style={styles.title}>{internship.title}</h3>
-
-        {/* Database: internship.companyName */}
-        {/* Database: internship.companyLogo -> could be rendered here as an <img> once available */}
         <p style={styles.companyName}>{internship.companyName}</p>
-
-        {/* Database: internship.description */}
         <p style={styles.description}>{internship.description}</p>
 
         <div style={styles.metaRow}>
-          {/* Database: internship.location */}
           <div style={styles.metaItem}>
             <span style={styles.metaIcon}>📍</span>
             <span>{internship.location}</span>
           </div>
 
-          {/* Database: internship.duration */}
           <div style={styles.metaItem}>
             <span style={styles.metaIcon}>🕐</span>
             <span>{internship.duration}</span>
           </div>
 
-          {/* Database: internship.compensation */}
           <div style={styles.metaItem}>
             <span style={styles.metaIcon}>$</span>
             <span>{internship.compensation}</span>
@@ -131,50 +168,49 @@ const InternshipOpportunityCard = ({ internship }) => {
         </div>
 
         <p style={styles.requirementsLabel}>Requirements :</p>
-        {/* Database: internship.requiredSkills (array) -> render each skill as a list item using .map() */}
-        <ul style={styles.requirementsList}>
-          {internship.requiredSkills.map((skill, index) => (
-            <li key={index}>{skill}</li>
-          ))}
-        </ul>
+        {internship.requiredSkills && internship.requiredSkills.length > 0 ? (
+          <ul style={styles.requirementsList}>
+            {internship.requiredSkills.map((skill, index) => (
+              <li key={index}>{skill}</li>
+            ))}
+          </ul>
+        ) : (
+          <p style={{ ...styles.requirementsList, paddingLeft: 0 }}>No specific requirements listed.</p>
+        )}
 
-        {/* Database: internship.postedDate -> format as a relative time string (e.g. "Posted 2 days ago") */}
-        <p style={styles.postedText}>Posted {internship.postedDaysAgo} days ago...</p>
+        <p style={styles.postedText}>{postedLabel(internship.postedDaysAgo)}</p>
       </div>
 
       <div style={styles.rightColumn}>
-        {/* Database: internship.status (e.g. "Onsite", "Remote", "Hybrid") */}
         <span style={styles.statusBadge}>{internship.status}</span>
 
-        {/* Future functionality: Apply button should submit an internship application to the backend/database */}
         <button
-          style={styles.applyButton}
-          onClick={() => {
-            // Future functionality: connect to application submission endpoint
-            // e.g. submitApplication(internship.id)
+          style={{
+            ...styles.applyButton,
+            ...(applied ? styles.applyButtonApplied : {}),
           }}
+          onClick={handleApply}
+          disabled={applied || applying}
         >
-          Apply Now
+          {applied ? "Applied ✓" : applying ? "Applying..." : "Apply Now"}
         </button>
+
+        {applied && (
+          <span style={styles.successMessage}>
+            Application submitted successfully!
+          </span>
+        )}
+
+        {applyError && <span style={styles.errorMessage}>{applyError}</span>}
 
         {/*
           Future functionality: Save button
-          Not shown in the current design, but should be added here once needed.
           Should save this internship record for the logged-in student.
-          Example:
-          <button style={styles.saveButton} onClick={() => saveInternship(internship.id)}>
-            Save
-          </button>
         */}
 
         {/*
           Future functionality: View Details button
-          Not shown in the current design, but should be added here once needed.
           Should navigate to a dedicated internship details page using internship.id.
-          Example:
-          <button style={styles.viewDetailsButton} onClick={() => navigateToDetails(internship.id)}>
-            View Details
-          </button>
         */}
       </div>
     </div>
