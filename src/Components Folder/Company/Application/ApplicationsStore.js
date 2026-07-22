@@ -6,6 +6,12 @@ export async function getAllApplicants() {
   return res.json();
 }
 
+export async function getApplicantsForCompany(companyId) {
+  const res = await fetch(`${APPLICATIONS_API}/company/${companyId}`);
+  if (!res.ok) throw new Error("Failed to load applications for company");
+  return res.json();
+}
+
 export async function getApplicantById(id) {
   const all = await getAllApplicants();
   return all.find((a) => String(a.id) === String(id));
@@ -24,7 +30,6 @@ export async function decideApplicant(id, decision, notes = "") {
   });
 }
 
-// Called from the Opportunities page "Apply Now" button.
 export async function submitApplication(internship) {
   const studentId = localStorage.getItem("studentId");
   if (!studentId) throw new Error("You must be logged in to apply.");
@@ -40,4 +45,4 @@ export async function submitApplication(internship) {
 
   if (!res.ok) throw new Error("Failed to submit application");
   return res.json();
-} 
+}
