@@ -22,7 +22,7 @@ import AttendanceTableRow from "./Attendancetablerow";
  * =========================================================================
  */
 
-const API_BASE = ""; // e.g. "http://localhost:8080" if not proxied via CRA
+const API_BASE = "http://localhost:8080"; 
 
 function getStudentId() {
   // TODO: replace with real auth/session lookup once AuthContext (or
