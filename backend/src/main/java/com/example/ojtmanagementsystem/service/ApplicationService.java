@@ -3,6 +3,7 @@ package com.example.ojtmanagementsystem.service;
 import com.example.ojtmanagementsystem.dto.ApplicationResponse;
 import com.example.ojtmanagementsystem.entity.Application;
 import com.example.ojtmanagementsystem.entity.Internship;
+import com.example.ojtmanagementsystem.entity.NotificationType;
 import com.example.ojtmanagementsystem.entity.Student;
 import com.example.ojtmanagementsystem.repository.ApplicationRepository;
 import com.example.ojtmanagementsystem.repository.InternshipRepository;
@@ -21,16 +22,19 @@ public class ApplicationService {
     private final ApplicationRepository applicationRepository;
     private final StudentRepository studentRepository;
     private final InternshipRepository internshipRepository;
+    private final NotificationService notificationService;
 
     private static final DateTimeFormatter DATE_FMT =
             DateTimeFormatter.ofPattern("MMM d", Locale.ENGLISH);
 
     public ApplicationService(ApplicationRepository applicationRepository,
                                StudentRepository studentRepository,
-                               InternshipRepository internshipRepository) {
+                               InternshipRepository internshipRepository,
+                               NotificationService notificationService) {
         this.applicationRepository = applicationRepository;
         this.studentRepository = studentRepository;
         this.internshipRepository = internshipRepository;
+        this.notificationService = notificationService;
     }
 
     public List<ApplicationResponse> getAll() {
@@ -47,7 +51,25 @@ public class ApplicationService {
         if (app.getShortlistedOn() == null) {
             app.setShortlistedOn(LocalDate.now());
         }
-        return toResponse(applicationRepository.save(app));
+        Application saved = applicationRepository.save(app);
+
+        // Notify the student that their application status changed
+        Student student = saved.getStudent();
+        if (student != null && student.getUser() != null) {
+            String positionTitle = saved.getInternship() != null
+                    ? saved.getInternship().getPositionTitle()
+                    : "your application";
+
+            notificationService.create(
+                    student.getUser().getUserId(),
+                    NotificationType.APPLICATION_STATUS_UPDATE,
+                    "Application " + status,
+                    "Your application for " + positionTitle + " is now " + status + ".",
+                    saved.getId()
+            );
+        }
+
+        return toResponse(saved);
     }
 
     public void reject(Long id) {
@@ -66,7 +88,30 @@ public class ApplicationService {
         app.setStatus("Pending");
         app.setAppliedDate(LocalDate.now());
 
-        return toResponse(applicationRepository.save(app));
+        Application saved = applicationRepository.save(app);
+
+        // Notify the company that a new applicant applied
+        if (internship.getCompany() != null && internship.getCompany().getUser() != null) {
+            String applicantName = "A student";
+            if (student.getUser() != null) {
+                String first = student.getUser().getFirstName();
+                String last = student.getUser().getLastName();
+                String fullName = ((first != null ? first : "") + " " + (last != null ? last : "")).trim();
+                if (!fullName.isEmpty()) {
+                    applicantName = fullName;
+                }
+            }
+
+            notificationService.create(
+                    internship.getCompany().getUser().getUserId(),
+                    NotificationType.NEW_APPLICANT,
+                    "New applicant — " + applicantName,
+                    "Applied for " + internship.getPositionTitle(),
+                    saved.getId()
+            );
+        }
+
+        return toResponse(saved);
     }
 
     private ApplicationResponse toResponse(Application app) {

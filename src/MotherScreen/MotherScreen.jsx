@@ -278,8 +278,7 @@ export default function MotherScreen() {
                 <Route path="/component-6/:internshipId" element={<SlotManagement/>} />
                 <Route path="/component-7" element={<Certificates/>} />
                 <Route path="/component-8" element={<Messages/>} />
-                <Route path="/component-9" element={<Notifications/>} />
-                <Route path="/component-9/:notificationId" element={<NotificationDetails/>} />
+                <Route path="/component-9" element={<Notifications />} />                <Route path="/component-9/:notificationId" element={<NotificationDetails/>} />
                 <Route path="/component-10" element={<ProfilePage/>} /> 
                 <Route path="/components-11" element={<OpportunitiesPage/>} />
             </Routes>
