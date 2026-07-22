@@ -9,15 +9,85 @@ const colors = {
 };
 
 const styles = {
-  page: { width: "100%", backgroundColor: colors.bg, padding: "24px", boxSizing: "border-box", fontFamily: "'Segoe UI', Arial, sans-serif" },
-  header: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "24px", flexWrap: "wrap", gap: "12px" },
-  headerLeft: { display: "flex", alignItems: "center", gap: "10px" },
-  headerTitle: { fontSize: "20px", fontWeight: 700, color: colors.maroon, margin: 0, lineHeight: 1.2 },
-  headerSubtitle: { fontSize: "12px", color: "#9a9aa2", margin: "2px 0 0" },
-  editButton: { display: "flex", alignItems: "center", gap: "8px", backgroundColor: colors.maroon, color: "#fff", border: "none", fontSize: "14px", fontWeight: 500, padding: "8px 16px", borderRadius: "6px", cursor: "pointer" },
-  grid: { display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1.3fr)", gap: "20px" },
-  column: { display: "flex", flexDirection: "column", gap: "20px" },
+  page: {
+    width: "100%",
+    height: "100%",
+    // Fills MotherScreen's white panel (header 120px, panel ~95% of remaining height)
+    minHeight: "calc((100vh - 120px) * 0.95)",
+    backgroundColor: colors.bg,
+    padding: "24px",
+    boxSizing: "border-box",
+    fontFamily: "'Segoe UI', Arial, sans-serif",
+    display: "flex",
+    flexDirection: "column",
+    overflow: "auto",
+  },
+
+  header: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: "20px",
+    flexWrap: "wrap",
+    gap: "12px",
+    flexShrink: 0,
+  },
+  headerLeft: {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+  },
+  headerTitle: {
+    fontSize: "20px",
+    fontWeight: 700,
+    color: colors.maroon,
+    margin: 0,
+    lineHeight: 1.2,
+  },
+  headerSubtitle: {
+    fontSize: "12px",
+    color: "#9a9aa2",
+    margin: "2px 0 0",
+  },
+  editButton: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    backgroundColor: colors.maroon,
+    color: "#fff",
+    border: "none",
+    fontSize: "14px",
+    fontWeight: 500,
+    padding: "8px 16px",
+    borderRadius: "8px",
+    cursor: "pointer",
+  },
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "minmax(260px, 0.9fr) minmax(0, 1.4fr)",
+    gap: "16px",
+    alignItems: "stretch",
+    flex: 1,
+    minHeight: 0,
+  },
+  column: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "16px",
+    minWidth: 0,
+    minHeight: 0,
+    height: "100%",
+  },
+  identityColumn: {
+    display: "flex",
+    flexDirection: "column",
+    minWidth: 0,
+    minHeight: 0,
+    height: "100%",
+    alignSelf: "stretch",
+  },
 };
+
 
 export default function CoordinatorProfile() {
   const [isEditing, setIsEditing] = useState(false);
@@ -33,12 +103,6 @@ export default function CoordinatorProfile() {
     phone: "+63 917 123 4567",
     department: "College of Computer Studies",
     officeHours: "Mon–Fri, 9:00 AM – 5:00 PM",
-  });
-
-  const [stats, setStats] = useState({
-    studentsHandled: 89,
-    companiesManaged: 35,
-    docsVerified: 156,
   });
 
   const [academic, setAcademic] = useState({
@@ -58,9 +122,23 @@ export default function CoordinatorProfile() {
     fetch("http://localhost:8080/api/coordinator")
       .then((res) => res.json())
       .then((data) => {
-        setProfile(data.profile);
-        setStats(data.stats);
-        setAcademic(data.academic);
+        if (data?.profile) {
+          setProfile((prev) => ({
+            ...prev,
+            ...Object.fromEntries(
+              Object.entries(data.profile).filter(([, value]) => value != null && value !== "")
+            ),
+          }));
+        }
+
+        if (data?.academic) {
+          setAcademic((prev) => ({
+            ...prev,
+            ...Object.fromEntries(
+              Object.entries(data.academic).filter(([, value]) => value != null && value !== "")
+            ),
+          }));
+        }
       })
       .catch((err) => {
         console.log("Error fetching coordinator profile:", err);
@@ -69,12 +147,15 @@ export default function CoordinatorProfile() {
     fetch("http://localhost:8080/api/coordinator/activity")
       .then((res) => res.json())
       .then((data) => {
-        setActivities(data);
+        if (Array.isArray(data) && data.length > 0) {
+          setActivities(data);
+        }
       })
       .catch((err) => {
         console.log("Error fetching recent activity:", err);
       });
   }, []);
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -137,10 +218,9 @@ export default function CoordinatorProfile() {
       </div>
 
       <div style={styles.grid}>
-        <div style={styles.column}>
+        <div style={styles.identityColumn}>
           <ProfileIdentityCard
             profile={profile}
-            stats={stats}
             isEditing={isEditing}
             photoUrl={photoUrl}
             fileInputRef={fileInputRef}
@@ -159,8 +239,6 @@ export default function CoordinatorProfile() {
           />
         </div>
       </div>
-
-      
     </div>
   );
 }
