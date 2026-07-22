@@ -17,17 +17,18 @@ const colors = {
   rejectedText: "#e0392b",
 };
 
-// Matches COMPANY.VerificationStatus enum from the ERD: Pending | Verified | Rejected
+// Matches COMPANY.verificationStatus values from the backend entity:
+// PENDING_REVIEW | VERIFIED | REJECTED
 const statusStyles = {
-  Verified: { backgroundColor: colors.verifiedBg, color: colors.verifiedText },
-  Pending: { backgroundColor: colors.pendingBg, color: colors.pendingText },
-  Rejected: { backgroundColor: colors.rejectedBg, color: colors.rejectedText },
+  VERIFIED: { backgroundColor: colors.verifiedBg, color: colors.verifiedText },
+  PENDING_REVIEW: { backgroundColor: colors.pendingBg, color: colors.pendingText },
+  REJECTED: { backgroundColor: colors.rejectedBg, color: colors.rejectedText },
 };
 
 const STATUS_ICONS = {
-  Verified: CheckCircle2,
-  Pending: Clock3,
-  Rejected: XCircle,
+  VERIFIED: CheckCircle2,
+  PENDING_REVIEW: Clock3,
+  REJECTED: XCircle,
 };
 
 const styles = {
@@ -45,7 +46,8 @@ const styles = {
 };
 
 export default function CompanyCard({ company, onSelect }) {
-  const StatusIcon = STATUS_ICONS[company.verificationStatus];
+  const StatusIcon = STATUS_ICONS[company.verificationStatus] || Clock3;
+  const statusStyle = statusStyles[company.verificationStatus] || statusStyles.PENDING_REVIEW;
 
   return (
     <div style={styles.card} onClick={() => onSelect(company.companyId)}>
@@ -59,7 +61,7 @@ export default function CompanyCard({ company, onSelect }) {
             <p style={styles.companyAddress}>{company.address}</p>
           </div>
         </div>
-        <span style={{ ...styles.statusBadge, ...statusStyles[company.verificationStatus] }}>
+        <span style={{ ...styles.statusBadge, ...statusStyle }}>
           <StatusIcon size={12} />
           {company.verificationStatus}
         </span>

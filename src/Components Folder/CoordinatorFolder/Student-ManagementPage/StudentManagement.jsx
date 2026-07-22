@@ -31,7 +31,7 @@ const styles = {
 export default function StudentManagement() {
   const [students, setStudents] = useState([
     {
-      studentId: 1,
+      studentId: "1",
       applicationId: 101,
       studentNumber: "2010-40009",
       firstName: "Mark",
@@ -46,7 +46,7 @@ export default function StudentManagement() {
       contactNumber: "+63 917 000 0001",
     },
     {
-      studentId: 2,
+      studentId: "2",
       applicationId: 102,
       studentNumber: "23-562-1332",
       firstName: "Vinzent",
@@ -61,7 +61,7 @@ export default function StudentManagement() {
       contactNumber: "+63 917 000 0002",
     },
     {
-      studentId: 3,
+      studentId: "3",
       applicationId: 103,
       studentNumber: "24-2016-40529",
       firstName: "Jose",
@@ -102,7 +102,7 @@ export default function StudentManagement() {
     );
   });
 
-  const selectedStudent = students.find((s) => s.studentId === selectedStudentId) || null;
+  const selectedStudent = filteredStudents.find((s) => s.studentId === selectedStudentId) || students.find((s) => s.studentId === selectedStudentId) || null;
 
   const handleExport = () => {
     const headers = ["Student Number", "Name", "Course", "Company", "Status", "Hours Completed", "Required Hours"];

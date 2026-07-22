@@ -34,7 +34,7 @@ public class CoordinatorStudentController {
         List<Student> students = studentRepository.findAll();
         List<StudentListResponse> response = students.stream().map(s -> {
             StudentListResponse dto = new StudentListResponse();
-            dto.setStudentId(0L); // Not applicable — Student uses String PK
+            dto.setStudentId(s.getStudentId());
             dto.setApplicationId(0L); // Would need a join
             dto.setStudentNumber(s.getStudentId());
             dto.setFirstName(s.getUser().getFirstName() != null ? s.getUser().getFirstName() : "");

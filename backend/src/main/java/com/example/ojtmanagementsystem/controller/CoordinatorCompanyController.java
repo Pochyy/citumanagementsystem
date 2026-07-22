@@ -43,7 +43,7 @@ public class CoordinatorCompanyController {
             dto.setContactPerson((firstName + " " + lastName).trim());
             dto.setContactNumber(c.getPhone() != null ? c.getPhone() : "");
             dto.setEmail(c.getEmail() != null ? c.getEmail() : "");
-            dto.setVerificationStatus(c.getVerificationStatus() != null ? c.getVerificationStatus() : "Pending");
+            dto.setVerificationStatus(c.getVerificationStatus() != null ? c.getVerificationStatus() : "PENDING_REVIEW");
             dto.setSlotsFilled(0); // Would need a join to calculate
             dto.setSlotsTotal(0);  // Would need a join to calculate
             return dto;

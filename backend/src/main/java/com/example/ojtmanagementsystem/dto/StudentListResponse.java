@@ -5,7 +5,7 @@ package com.example.ojtmanagementsystem.dto;
  * Joins data from STUDENT + USER + INTERNSHIP PROGRESS + COMPANY.
  */
 public class StudentListResponse {
-    private Long studentId;
+    private String studentId;
     private Long applicationId;
     private String studentNumber;
     private String firstName;
@@ -21,7 +21,7 @@ public class StudentListResponse {
 
     public StudentListResponse() {}
 
-    public StudentListResponse(Long studentId, Long applicationId, String studentNumber,
+    public StudentListResponse(String studentId, Long applicationId, String studentNumber,
                                 String firstName, String lastName, String course,
                                 Integer yearLevel, String companyName, String progressStatus,
                                 Integer hoursCompleted, Integer requiredHours,
@@ -41,8 +41,8 @@ public class StudentListResponse {
         this.contactNumber = contactNumber;
     }
 
-    public Long getStudentId() { return studentId; }
-    public void setStudentId(Long studentId) { this.studentId = studentId; }
+    public String getStudentId() { return studentId; }
+    public void setStudentId(String studentId) { this.studentId = studentId; }
 
     public Long getApplicationId() { return applicationId; }
     public void setApplicationId(Long applicationId) { this.applicationId = applicationId; }
