@@ -373,16 +373,17 @@ export default function MotherScreen() {
           {/* ============================================================
               INNER CONTENT
           ============================================================ */}
-          <div
-            className="inner-content"
-            style={{
-              width: "95%",
-              height: "95%",
-              backgroundColor: "white",
-              overflow: "hidden",
-              boxSizing: "border-box",
-            }}
-          >
+            <div
+              className="inner-content"
+              style={{
+                width: "95%",
+                height: "95%",
+                backgroundColor: "white",
+                overflowY: "auto",      // scrolls vertically when content is tallers
+                overflowX: "hidden",    // still prevents horizontal scroll/layout break
+                boxSizing: "border-box",
+              }}
+            >
             {/* ========================================================
                 ROUTES FOR PAGES INSIDE THE SIDEBAR LAYOUT
             ======================================================== */}
