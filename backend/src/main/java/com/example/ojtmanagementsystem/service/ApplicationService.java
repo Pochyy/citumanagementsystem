@@ -126,6 +126,13 @@ public class ApplicationService {
 
         Application saved = applicationRepository.save(app);
 
+        // Update internship slot count
+        if (internship.getAvailableSlots() != null && internship.getAvailableSlots() > 0) {
+            internship.setAvailableSlots(internship.getAvailableSlots() - 1);
+        }
+        internship.setApplicationsCount((internship.getApplicationsCount() != null ? internship.getApplicationsCount() : 0) + 1);
+        internshipRepository.save(internship);
+
         if (internship.getCompany() != null && internship.getCompany().getUser() != null) {
             String applicantName = "A student";
             if (student.getUser() != null) {
