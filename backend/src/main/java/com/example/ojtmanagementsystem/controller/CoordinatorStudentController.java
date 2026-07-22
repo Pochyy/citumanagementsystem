@@ -1,7 +1,9 @@
 package com.example.ojtmanagementsystem.controller;
 
 import com.example.ojtmanagementsystem.dto.StudentListResponse;
+import com.example.ojtmanagementsystem.entity.Application;
 import com.example.ojtmanagementsystem.entity.Student;
+import com.example.ojtmanagementsystem.repository.ApplicationRepository;
 import com.example.ojtmanagementsystem.repository.StudentRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,9 +21,11 @@ import java.util.stream.Collectors;
 public class CoordinatorStudentController {
 
     private final StudentRepository studentRepository;
+    private final ApplicationRepository applicationRepository;
 
-    public CoordinatorStudentController(StudentRepository studentRepository) {
+    public CoordinatorStudentController(StudentRepository studentRepository, ApplicationRepository applicationRepository) {
         this.studentRepository = studentRepository;
+        this.applicationRepository = applicationRepository;
     }
 
     /**
@@ -41,10 +45,25 @@ public class CoordinatorStudentController {
             dto.setLastName(s.getUser().getLastName() != null ? s.getUser().getLastName() : "");
             dto.setCourse(s.getProgram() != null ? s.getProgram() : "");
             dto.setYearLevel(s.getYearLevel() != null ? Integer.parseInt(s.getYearLevel()) : 0);
-            dto.setCompanyName(""); // Would need a join via Application
-            dto.setProgressStatus(""); // Would need a join
-            dto.setHoursCompleted(0); // Would need a join
-            dto.setRequiredHours(0); // Would need a join
+            
+            // Get the most recent application for this student
+            List<Application> applications = applicationRepository.findByStudent_StudentIdOrderByIdDesc(s.getStudentId());
+            if (!applications.isEmpty()) {
+                Application latestApp = applications.get(0);
+                if (latestApp.getInternship() != null && latestApp.getInternship().getCompany() != null) {
+                    dto.setCompanyName(latestApp.getInternship().getCompany().getCompanyName());
+                } else {
+                    dto.setCompanyName("");
+                }
+                dto.setProgressStatus(latestApp.getStatus() != null ? latestApp.getStatus() : "");
+                dto.setApplicationId(latestApp.getId());
+            } else {
+                dto.setCompanyName("");
+                dto.setProgressStatus("");
+                dto.setApplicationId(0L);
+            }
+            dto.setHoursCompleted(0);
+            dto.setRequiredHours(0);
             dto.setEmail(s.getUser().getEmail() != null ? s.getUser().getEmail() : "");
             dto.setContactNumber(s.getPhoneNumber() != null ? s.getPhoneNumber() : "");
             return dto;

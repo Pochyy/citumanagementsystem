@@ -11,6 +11,10 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
     // All applications submitted by a given student (any status)
     List<Application> findByStudent_StudentId(String studentId);
 
+    // Most recent applications first — used to show the student's latest
+    // application/company in coordinator views.
+    List<Application> findByStudent_StudentIdOrderByIdDesc(String studentId);
+
     // The student's application in a specific status — used to find their
     // currently ACCEPTED internship for the Attendance page.
     Optional<Application> findByStudent_StudentIdAndStatus(String studentId, String status);
