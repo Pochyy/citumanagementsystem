@@ -37,6 +37,14 @@ export default function SideBar({ role }) {
       <Link to="/component-8">Messages</Link><br />
       <Link to="/component-9">Notifications</Link><br />
       <Link to="/component-10">Profile Page</Link><br />
+      <Link to="/Page/CoordinatorProfile">Coordinator Profile</Link>
+      <br />
+      <Link to="/Page/StudentManagement">Student Management</Link>
+      <br />
+      <Link to="/Page/CompanyManagement">Company Management</Link>
+      <br />
+      <Link to="/Page/ProgressMonitoring">Progress Monitoring</Link>
+
 
     </div>
   );

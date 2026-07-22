@@ -123,14 +123,13 @@ export default function ProgressMonitoring() {
     const from = days[0].key;
     const to = days[days.length - 1].key;
 
-    // Backend endpoint should accept a date range and return records already
-    // keyed by real date (matching the shape used in buildDummyRecords above):
-    // { weekLabel, records: [{ id, name, attendance: { "2026-07-13": { timeIn, timeOut } | null, ... } }] }
     fetch(`http://localhost:8080/api/attendance?from=${from}&to=${to}`)
       .then((res) => res.json())
       .then((data) => {
-        setWeekLabel(data.weekLabel);
-        setRecords(data.records);
+        if (data && data.records) {
+          setWeekLabel(data.weekLabel);
+          setRecords(data.records);
+        }
       })
       .catch((err) => {
         console.log("Error fetching attendance records:", err);

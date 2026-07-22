@@ -232,8 +232,8 @@ const handleLoginSubmit = async (event) => {
 
           } else if (user.role === "COORDINATOR") {
             navigate
-              ? navigate("/component-1")
-              : (window.location.href = "/component-1");
+              ? navigate("/coordinator/CoordinatorProfile")
+              : (window.location.href = "/coordinator/CoordinatorProfile");
           }
     } catch (err) {
       setLoginError(err.message || "Something went wrong logging you in.");

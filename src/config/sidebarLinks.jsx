@@ -25,8 +25,10 @@ const sidebarLinks = {
   ],
 
   COORDINATOR: [
-    { name: "Dashboard", path: "/component-1" },        // placeholder — confirm
-    { name: "Student Management", path: "/component-4" }, // placeholder — confirm
+    { name: "Coordinator Profile", path: "/coordinator/CoordinatorProfile" },
+    { name: "Student Management", path: "/coordinator/StudentManagement" },
+    { name: "Company Management", path: "/coordinator/CompanyManagement" },
+    { name: "Progress Monitoring", path: "/coordinator/ProgressMonitoring" },
   ],
 };
 

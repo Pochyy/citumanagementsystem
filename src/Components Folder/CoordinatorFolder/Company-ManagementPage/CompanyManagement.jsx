@@ -66,7 +66,7 @@ export default function CompanyManagement() {
   const [selectedCompanyId, setSelectedCompanyId] = useState(null);
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/companies")
+    fetch("http://localhost:8080/api/coordinator/companies")
       .then((res) => res.json())
       .then((data) => {
         setCompanies(data);

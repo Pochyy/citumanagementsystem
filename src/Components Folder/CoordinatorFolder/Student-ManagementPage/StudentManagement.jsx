@@ -81,7 +81,7 @@ export default function StudentManagement() {
   const [selectedStudentId, setSelectedStudentId] = useState(null);
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/students")
+    fetch("http://localhost:8080/api/coordinator/students")
       .then((res) => res.json())
       .then((data) => {
         setStudents(data);

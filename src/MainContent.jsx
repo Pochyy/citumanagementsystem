@@ -26,6 +26,15 @@ import Notifications from "./Components Folder/Company/Notification/Notification
 import NotificationDetails from "./Components Folder/Company/Notification/NotificationDetails";
 
 
+// ================= COORDINATOR PAGE IMPORTS =================
+import CoordinatorProfile from "./Components Folder/CoordinatorFolder/Coordinator-ProfilePage/CoordinatorProfile";
+import StudentManagement from "./Components Folder/CoordinatorFolder/Student-ManagementPage/StudentManagement";
+import CompanyManagement from "./Components Folder/CoordinatorFolder/Company-ManagementPage/CompanyManagement";
+import ProgressMonitoring from "./Components Folder/CoordinatorFolder/Progress-MonitoringPage/ProgressMonitoring";
+
+
+
+
 
 export default function MainContent() {
   return (
@@ -61,6 +70,10 @@ export default function MainContent() {
         <Route path="/component-8" element={<Messages/>} />
         <Route path="/component-9" element={<Notifications/>} />
         <Route path="/component-9/:notificationId" element={<NotificationDetails/>} />
+        <Route path="/Page/CoordinatorProfile" element={<CoordinatorProfile/>} />
+        <Route path="/Page/StudentManagement" element={<StudentManagement/>} />
+        <Route path="/Page/CompanyManagement" element={<CompanyManagement/>} />
+        <Route path="/Page/ProgressMonitoring" element={<ProgressMonitoring/>} />
         
       </Routes>
 

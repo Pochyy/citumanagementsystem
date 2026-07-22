@@ -25,6 +25,13 @@ import StudentOpportunities from "../Components Folder/StudentFolder/Opportuniti
 import StudentRequirements from "../Components Folder/StudentFolder/RequirementPage/RequirementsPage";
 import StudentProfile from "../Components Folder/StudentFolder/Student-Profile-Page/ProfilePage";
 
+// ================= COORDINATOR PAGE IMPORTS =================
+import CoordinatorProfile from "../Components Folder/CoordinatorFolder/Coordinator-ProfilePage/CoordinatorProfile";
+import StudentManagement from "../Components Folder/CoordinatorFolder/Student-ManagementPage/StudentManagement";
+import CompanyManagement from "../Components Folder/CoordinatorFolder/Company-ManagementPage/CompanyManagement";
+import ProgressMonitoring from "../Components Folder/CoordinatorFolder/Progress-MonitoringPage/ProgressMonitoring";
+
+
 import Logo from "./logo.png";
 
 import {
@@ -498,6 +505,25 @@ export default function MotherScreen() {
               <Route
                 path="/student/notifications"
                 element={<StudentNotifications />}
+              />
+              
+              {/* ================= COORDINATOR ROUTES ================= */}
+
+               <Route
+                path="/coordinator/CoordinatorProfile"
+                element={<CoordinatorProfile />}
+              />
+              <Route
+                path="/coordinator/StudentManagement"
+                element={<StudentManagement />}
+              />
+              <Route
+                path="/coordinator/CompanyManagement"
+                element={<CompanyManagement />}
+              />
+              <Route
+                path="/coordinator/ProgressMonitoring"
+                element={<ProgressMonitoring />}
               />
 
             </Routes>
