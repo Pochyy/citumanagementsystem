@@ -23,7 +23,7 @@ const styles = {
 // Fields map directly to the ERD's COMPANY entity:
 // companyId (CompanyID), companyName (CompanyName), address (Address),
 // contactPerson (ContactPerson), contactNumber (ContactNumber), email (Email),
-// verificationStatus (VerificationStatus: Pending | Verified | Rejected)
+// verificationStatus (PENDING_REVIEW | VERIFIED | REJECTED)
 // slotsFilled/slotsTotal are aggregated from that company's INTERNSHIP POSTING rows
 // (SUM of applications accepted vs SUM of AvailableSlots) — not a raw COMPANY column.
 export default function CompanyManagement() {
@@ -35,7 +35,7 @@ export default function CompanyManagement() {
       contactPerson: "Maria Santos",
       contactNumber: "+63 2 8988 8000",
       email: "hr@accenture.com.ph",
-      verificationStatus: "Verified",
+      verificationStatus: "VERIFIED",
       slotsFilled: 4,
       slotsTotal: 5,
     },
@@ -46,7 +46,7 @@ export default function CompanyManagement() {
       contactPerson: "Juan Dela Cruz",
       contactNumber: "+63 2 7730 1000",
       email: "internship@globe.com.ph",
-      verificationStatus: "Verified",
+      verificationStatus: "VERIFIED",
       slotsFilled: 3,
       slotsTotal: 5,
     },
@@ -57,7 +57,7 @@ export default function CompanyManagement() {
       contactPerson: "Anna Reyes",
       contactNumber: "+63 2 8816 8555",
       email: "internship@pldt.com",
-      verificationStatus: "Pending",
+      verificationStatus: "PENDING_REVIEW",
       slotsFilled: 1,
       slotsTotal: 5,
     },
