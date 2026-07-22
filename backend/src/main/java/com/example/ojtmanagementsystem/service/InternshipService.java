@@ -5,6 +5,7 @@ import com.example.ojtmanagementsystem.dto.InternshipResponse;
 import com.example.ojtmanagementsystem.dto.InternshipStatsResponse;
 import com.example.ojtmanagementsystem.entity.Company;
 import com.example.ojtmanagementsystem.entity.Internship;
+import com.example.ojtmanagementsystem.repository.ApplicationRepository;
 import com.example.ojtmanagementsystem.repository.CompanyRepository;
 import com.example.ojtmanagementsystem.repository.InternshipRepository;
 import org.springframework.http.HttpStatus;
@@ -20,11 +21,14 @@ public class InternshipService {
 
     private final InternshipRepository internshipRepository;
     private final CompanyRepository companyRepository;
+    private final ApplicationRepository applicationRepository;
 
     public InternshipService(InternshipRepository internshipRepository,
-                              CompanyRepository companyRepository) {
+                              CompanyRepository companyRepository,
+                              ApplicationRepository applicationRepository) {
         this.internshipRepository = internshipRepository;
         this.companyRepository = companyRepository;
+        this.applicationRepository = applicationRepository;
     }
 
     @Transactional
@@ -39,7 +43,7 @@ public class InternshipService {
         applyRequest(internship, request);
 
         Internship saved = internshipRepository.save(internship);
-        return InternshipResponse.from(saved);
+        return toResponseWithLiveCount(saved);
     }
 
     @Transactional
@@ -51,7 +55,7 @@ public class InternshipService {
         applyRequest(internship, request);
 
         Internship saved = internshipRepository.save(internship);
-        return InternshipResponse.from(saved);
+        return toResponseWithLiveCount(saved);
     }
 
     @Transactional
@@ -63,7 +67,7 @@ public class InternshipService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status must be 'Open' or 'Close'");
         }
         internship.setStatus(status);
-        return InternshipResponse.from(internshipRepository.save(internship));
+        return toResponseWithLiveCount(internshipRepository.save(internship));
     }
 
     @Transactional
@@ -76,21 +80,21 @@ public class InternshipService {
         }
 
         internship.setAvailableSlots(availableSlots);
-        return InternshipResponse.from(internshipRepository.save(internship));
+        return toResponseWithLiveCount(internshipRepository.save(internship));
     }
 
     @Transactional(readOnly = true)
     public InternshipResponse getInternship(Long id) {
         Internship internship = internshipRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Internship not found"));
-        return InternshipResponse.from(internship);
+        return toResponseWithLiveCount(internship);
     }
 
     @Transactional(readOnly = true)
     public List<InternshipResponse> getInternshipsByCompany(Long companyId) {
         return internshipRepository.findByCompanyIdOrderByPostedDateDesc(companyId)
                 .stream()
-                .map(InternshipResponse::from)
+                .map(this::toResponseWithLiveCount)
                 .collect(Collectors.toList());
     }
 
@@ -98,7 +102,7 @@ public class InternshipService {
     public List<InternshipResponse> getOpenInternships() {
         return internshipRepository.findByStatus("Open")
                 .stream()
-                .map(InternshipResponse::from)
+                .map(this::toResponseWithLiveCount)
                 .collect(Collectors.toList());
     }
 
@@ -113,9 +117,8 @@ public class InternshipService {
         long totalSlots = internships.stream()
                 .mapToLong(i -> i.getAvailableSlots() == null ? 0 : i.getAvailableSlots())
                 .sum();
-        long totalApplicants = internships.stream()
-                .mapToLong(i -> i.getApplicationsCount() == null ? 0 : i.getApplicationsCount())
-                .sum();
+
+        long totalApplicants = applicationRepository.countByInternship_Company_Id(companyId);
 
         return new InternshipStatsResponse(totalPostings, currentlyOpen, totalSlots, totalApplicants);
     }
@@ -130,6 +133,13 @@ public class InternshipService {
 
     // ---- helpers ----
 
+    private InternshipResponse toResponseWithLiveCount(Internship internship) {
+        InternshipResponse response = InternshipResponse.from(internship);
+        long liveCount = applicationRepository.countByInternship_Id(internship.getId());
+        response.setApplications((int) liveCount);
+        return response;
+    }
+
     private void applyRequest(Internship internship, CreateInternshipRequest request) {
         internship.setPositionTitle(request.getPositionTitle().trim());
         internship.setDepartment(request.getDepartment());
@@ -142,10 +152,6 @@ public class InternshipService {
         internship.setWorkSetup(request.getWorkSetup());
     }
 
-    /**
-     * Mirrors the validation already done client-side in CreateInternship.jsx,
-     * enforced again here since the client checks can't be trusted alone.
-     */
     private void validate(CreateInternshipRequest request) {
         if (request.getPositionTitle() == null || request.getPositionTitle().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Position title is required");

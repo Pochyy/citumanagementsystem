@@ -35,14 +35,14 @@ public class ApplicationController {
         return applicationService.getActiveApplicationForStudent(studentId);
     }
 
-    /**
-     * GET /api/applications/student/{studentId}/details
-     * Full Internship + Company detail per application - powers the
-     * student-facing "My Applications" tracking page.
-     */
     @GetMapping("/student/{studentId}/details")
     public List<StudentApplicationResponse> getMyApplications(@PathVariable String studentId) {
         return applicationService.getMyApplications(studentId);
+    }
+
+    @GetMapping("/company/{companyId}")
+    public List<ApplicationResponse> getAllForCompany(@PathVariable Long companyId) {
+        return applicationService.getAllForCompany(companyId);
     }
 
     @PostMapping

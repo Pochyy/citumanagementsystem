@@ -8,10 +8,17 @@ import java.util.Optional;
 
 public interface ApplicationRepository extends JpaRepository<Application, Long> {
 
-    // All applications submitted by a given student (any status)
     List<Application> findByStudent_StudentId(String studentId);
 
-    // The student's application in a specific status — used to find their
-    // currently ACCEPTED internship for the Attendance page.
     Optional<Application> findByStudent_StudentIdAndStatus(String studentId, String status);
+
+    List<Application> findByInternship_Company_Id(Long companyId);
+
+    // Live count of applications for one internship — replaces the stale
+    // Internship.applicationsCount field, which is never incremented.
+    long countByInternship_Id(Long internshipId);
+
+    // Live count of applications across every internship a company has posted —
+    // powers the "Applicants" stat card on the dashboard.
+    long countByInternship_Company_Id(Long companyId);
 }

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { getAllApplicants } from "./ApplicationsStore";
+import { getApplicantsForCompany } from "./ApplicationsStore";
+import { resolveCompanyId } from "../Internship/internshipApi";
 import ApplicationItem from "./ApplicationItem";
 
 const styles = {
@@ -9,7 +10,6 @@ const styles = {
     minHeight: "100vh",
     fontFamily: "Arial, Helvetica, sans-serif",
   },
-
   header: {
     display: "flex",
     justifyContent: "space-between",
@@ -17,31 +17,26 @@ const styles = {
     marginBottom: "25px",
     flexWrap: "wrap",
   },
-
   title: {
     color: "#8b1e2b",
     margin: 0,
     fontSize: "28px",
     fontWeight: 700,
   },
-
   filters: {
     display: "flex",
     gap: "12px",
   },
-
   select: {
     padding: "10px",
     borderRadius: "6px",
     border: "1px solid #ddd",
     minWidth: "180px",
   },
-
   table: {
     width: "100%",
     borderCollapse: "collapse",
   },
-
   th: {
     textAlign: "left",
     padding: "15px",
@@ -56,17 +51,33 @@ export default function ApplicationListPage() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    getAllApplicants()
-      .then(setApplicants)
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
+    let cancelled = false;
+
+    async function load() {
+      setLoading(true);
+      setError(null);
+      try {
+        const companyId = await resolveCompanyId();
+        if (!companyId) {
+          throw new Error("No company found for this account.");
+        }
+        const data = await getApplicantsForCompany(companyId);
+        if (!cancelled) setApplicants(data);
+      } catch (err) {
+        if (!cancelled) setError(err.message);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  const [internshipFilter, setInternshipFilter] =
-    useState("All internships");
-
-  const [statusFilter, setStatusFilter] =
-    useState("All status");
+  const [internshipFilter, setInternshipFilter] = useState("All internships");
+  const [statusFilter, setStatusFilter] = useState("All status");
 
   const internshipOptions = useMemo(
     () => [
@@ -76,12 +87,7 @@ export default function ApplicationListPage() {
     [applicants]
   );
 
-  const statusOptions = [
-    "All status",
-    "Pending",
-    "Shortlisted",
-    "Accepted",
-  ];
+  const statusOptions = ["All status", "Pending", "Shortlisted", "Accepted"];
 
   const filtered = applicants.filter((a) => {
     const internshipMatch =
@@ -89,8 +95,7 @@ export default function ApplicationListPage() {
       internshipFilter === a.appliedFor;
 
     const statusMatch =
-      statusFilter === "All status" ||
-      statusFilter === a.status;
+      statusFilter === "All status" || statusFilter === a.status;
 
     return internshipMatch && statusMatch;
   });
@@ -104,9 +109,7 @@ export default function ApplicationListPage() {
           <select
             style={styles.select}
             value={internshipFilter}
-            onChange={(e) =>
-              setInternshipFilter(e.target.value)
-            }
+            onChange={(e) => setInternshipFilter(e.target.value)}
           >
             {internshipOptions.map((option) => (
               <option key={option}>{option}</option>
@@ -116,9 +119,7 @@ export default function ApplicationListPage() {
           <select
             style={styles.select}
             value={statusFilter}
-            onChange={(e) =>
-              setStatusFilter(e.target.value)
-            }
+            onChange={(e) => setStatusFilter(e.target.value)}
           >
             {statusOptions.map((option) => (
               <option key={option}>{option}</option>

@@ -32,7 +32,6 @@ public class ApplicationService {
     private static final DateTimeFormatter DATE_FMT =
             DateTimeFormatter.ofPattern("MMM d", Locale.ENGLISH);
 
-    // Fuller date format used on the student-facing "My Applications" page.
     private static final DateTimeFormatter FULL_DATE_FMT =
             DateTimeFormatter.ofPattern("MMMM d, yyyy", Locale.ENGLISH);
 
@@ -67,13 +66,12 @@ public class ApplicationService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Full detail view of every application a student has made - powers the
-     * "My Applications" tracking page (MyInternshipPage.jsx). Unlike
-     * getAllForStudent/getAll (which return the coordinator-facing
-     * ApplicationResponse shape), this returns the richer
-     * StudentApplicationResponse joined with Internship + Company fields.
-     */
+    public List<ApplicationResponse> getAllForCompany(Long companyId) {
+        return applicationRepository.findByInternship_Company_Id(companyId).stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
     public List<StudentApplicationResponse> getMyApplications(String studentId) {
         return applicationRepository.findByStudent_StudentId(studentId).stream()
                 .map(this::toStudentResponse)
@@ -218,12 +216,6 @@ public class ApplicationService {
         return res;
     }
 
-    // TODO(confirm-with-product): progress here reflects how far the
-    // application itself has moved through the review pipeline, not
-    // attendance/hours worked (that's a separate concern already handled
-    // by AttendanceService for accepted, in-progress internships). Adjust
-    // these percentages, or the mapping entirely, if the intended meaning
-    // of "progress" on this page is different.
     private int deriveProgressPercent(String status) {
         if (status == null) return 0;
         return switch (status) {
