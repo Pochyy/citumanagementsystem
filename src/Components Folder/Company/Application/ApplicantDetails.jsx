@@ -1,8 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import applicants from "./applicantsData";
-
-
+import { getApplicantById, decideApplicant } from "./ApplicationsStore";
 
 const STATUS_STYLES = {
   Verified: { bg: "var(--green-light)", fg: "var(--green)", dot: "var(--green)" },
@@ -23,14 +21,59 @@ export default function ApplicantDetails() {
   const navigate = useNavigate();
   const { applicantId } = useParams();
 
-  const applicant = applicants.find(
-    (item) => String(item.id) === String(applicantId)
-  );
+  const [applicant, setApplicant] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const [decision, setDecision] = useState(null); // 'accepted' | 'shortlisted' | 'rejected'
   const [notes, setNotes] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    getApplicantById(applicantId)
+      .then((data) => {
+        if (!cancelled) {
+          setApplicant(data || null);
+          setNotes(data?.notes || "");
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setApplicant(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [applicantId]);
 
   const handleBack = () => navigate("/component-4");
+
+  const handleDecision = async (choice) => {
+    if (!applicant) return;
+    setDecision(choice);
+    setSaving(true);
+    try {
+      await decideApplicant(applicant.id, choice, notes);
+      navigate("/component-4");
+    } catch (err) {
+      console.error("Failed to save decision:", err);
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="ad-notfound">
+        <style>{CSS}</style>
+        <div className="ad-notfound__card">
+          <h2>Loading…</h2>
+        </div>
+      </div>
+    );
+  }
 
   if (!applicant) {
     return (
@@ -100,7 +143,7 @@ export default function ApplicantDetails() {
               )}
               <div>
                 <dt>Applied for</dt>
-                <dd className="ad-strong">{applicant.position}</dd>
+                <dd className="ad-strong">{applicant.appliedFor}</dd>
               </div>
             </dl>
 
@@ -177,7 +220,8 @@ export default function ApplicantDetails() {
             <div className="ad-actions">
               <button
                 className={`ad-btn ad-btn--accept ${decision === "accepted" ? "is-active" : ""}`}
-                onClick={() => setDecision("accepted")}
+                onClick={() => handleDecision("accepted")}
+                disabled={saving}
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
                   <path d="M20 6 9 17l-5-5" />
@@ -186,7 +230,8 @@ export default function ApplicantDetails() {
               </button>
               <button
                 className={`ad-btn ad-btn--shortlist ${decision === "shortlisted" ? "is-active" : ""}`}
-                onClick={() => setDecision("shortlisted")}
+                onClick={() => handleDecision("shortlisted")}
+                disabled={saving}
               >
                 <svg viewBox="0 0 24 24" fill={decision === "shortlisted" ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
                   <path d="M12 2 15 9l7 1-5 5 1.5 7L12 18l-6.5 4L7 15l-5-5 7-1z" />
@@ -195,7 +240,8 @@ export default function ApplicantDetails() {
               </button>
               <button
                 className={`ad-btn ad-btn--reject ${decision === "rejected" ? "is-active" : ""}`}
-                onClick={() => setDecision("rejected")}
+                onClick={() => handleDecision("rejected")}
+                disabled={saving}
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
                   <path d="M18 6 6 18M6 6l12 12" />
@@ -204,11 +250,8 @@ export default function ApplicantDetails() {
               </button>
             </div>
 
-            {decision && (
-              <p className="ad-decision-note">
-                Marked as <strong>{decision}</strong>
-                {notes ? " with notes attached." : "."}
-              </p>
+            {saving && (
+              <p className="ad-decision-note">Saving decision…</p>
             )}
           </div>
         </section>
@@ -468,6 +511,7 @@ const CSS = `
   transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
 }
 .ad-btn:hover { transform: translateY(-1px); }
+.ad-btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
 .ad-btn svg { width: 15px; height: 15px; }
 .ad-btn:focus-visible { outline: 2px solid var(--maroon); outline-offset: 2px; }
 
@@ -490,12 +534,6 @@ const CSS = `
   border-color: #EFC6C1;
 }
 .ad-btn--reject.is-active { background: var(--red-light); }
-
-.ad-btn--ghost {
-  background: var(--card);
-  color: var(--ink);
-  border-color: var(--line);
-}
 
 .ad-decision-note {
   margin: 14px 0 0;

@@ -84,7 +84,7 @@ export default function ApplicationItem({
   const avatar =
     avatarPalette[index % avatarPalette.length];
 
-  const status = statusStyles[applicant.status];
+  const status = statusStyles[applicant.status] || statusStyles.Pending;
 
   return (
     <tr>

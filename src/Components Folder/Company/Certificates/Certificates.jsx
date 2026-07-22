@@ -1,39 +1,43 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import IssuedCertificates from "./IssuedCertificates";
+import { generateCertificateDataUrl, downloadDataUrl } from "./certificateGenerator";
+import { getAllApplicants } from "../Application/ApplicationsStore";
 
-const interns = [
-  { name: "Rose", period: "March 1 – June 1, 2025", hours: "486" },
-  { name: "Karl Lim", period: "Nov 1, 2024 – Feb 15, 2025", hours: "320" },
-  { name: "Maria Santos", period: "Feb 1 – May 1, 2025", hours: "410" },
-];
-
-const issuedCertificates = [
+const initialIssuedCertificates = [
   {
     id: 1,
     name: "Ana Cruz",
     detail: "Issued Mar 30, 2025 · 486 hrs",
     status: "Issued",
+    dataUrl: null, 
   },
   {
     id: 2,
     name: "Karl Lim",
     detail: "Issued Feb 15, 2025 · 320 hrs",
     status: "Issued",
+    dataUrl: null,
   },
   {
     id: 3,
     name: "Maria Santos",
     detail: "Pending completion",
     status: "Pending",
+    dataUrl: null,
   },
 ];
 
-const statusStyles = {
-  Issued: { bg: "#dcfce7", color: "#15803d" },
-  Pending: { bg: "#fef9c3", color: "#a16207" },
-};
+function formatToday() {
+  return new Date().toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
 
 export default function Certificates() {
   const [form, setForm] = useState({
+    applicationId: "",
     intern: "",
     period: "",
     hours: "",
@@ -41,13 +45,38 @@ export default function Certificates() {
     signatoryPosition: "HR Manager",
   });
 
+ 
+  const [interns, setInterns] = useState([]);
+  const [internsLoading, setInternsLoading] = useState(true);
+  const [internsError, setInternsError] = useState(null);
+
+  useEffect(() => {
+    getAllApplicants()
+      .then((all) => {
+        setInterns(all.filter((a) => a.status === "Accepted"));
+      })
+      .catch((err) => setInternsError(err.message))
+      .finally(() => setInternsLoading(false));
+  }, []);
+
+  const [issuedCertificates, setIssuedCertificates] = useState(
+    initialIssuedCertificates
+  );
+
+  const [formError, setFormError] = useState("");
+
+
   const handleInternChange = (e) => {
-    const selected = interns.find((i) => i.name === e.target.value);
+    const applicationId = e.target.value;
+    const selected = interns.find((i) => String(i.id) === applicationId);
     setForm((prev) => ({
       ...prev,
-      intern: e.target.value,
-      period: selected ? selected.period : "",
-      hours: selected ? selected.hours : "",
+      applicationId,
+      intern: selected ? selected.name : "",
+      // Period/hours aren't stored on the application record itself, so
+      // the company still fills these in manually per certificate.
+      period: "",
+      hours: "",
     }));
   };
 
@@ -58,6 +87,50 @@ export default function Certificates() {
   const previewName = form.intern || "[Intern name]";
   const previewHours = form.hours || "[hours]";
   const previewPeriod = form.period || "[internship period]";
+
+  const handleDownload = () => {
+    if (!form.intern || !form.period || !form.hours) {
+      setFormError("Select an intern and fill in the period and hours before downloading.");
+      return;
+    }
+    setFormError("");
+
+    const dataUrl = generateCertificateDataUrl({
+      internName: form.intern,
+      hours: form.hours,
+      period: form.period,
+      signatoryName: form.signatoryName || "Signatory",
+      signatoryPosition: form.signatoryPosition || "",
+    });
+
+    const filename = `${form.intern.replace(/\s+/g, "_")}_certificate.png`;
+    downloadDataUrl(dataUrl, filename);
+
+    // Push (or update) this intern's entry in the Issued certificates list
+    // so the download shows up there immediately, without a page reload.
+    setIssuedCertificates((prev) => {
+      const existingIndex = prev.findIndex((c) => c.name === form.intern);
+      const newEntry = {
+        id: existingIndex >= 0 ? prev[existingIndex].id : Date.now(),
+        name: form.intern,
+        detail: `Issued ${formatToday()} · ${form.hours} hrs`,
+        status: "Issued",
+        dataUrl,
+      };
+
+      if (existingIndex >= 0) {
+        const copy = [...prev];
+        copy[existingIndex] = newEntry;
+        return copy;
+      }
+      return [newEntry, ...prev];
+    });
+  };
+
+  const handleReDownload = (cert) => {
+    const filename = `${cert.name.replace(/\s+/g, "_")}_certificate.png`;
+    downloadDataUrl(cert.dataUrl, filename);
+  };
 
   return (
     <>
@@ -208,6 +281,17 @@ export default function Certificates() {
           color: var(--ink-faint);
         }
 
+        .certificates__error {
+          margin: 0 0 16px;
+          padding: 10px 14px;
+          border-radius: 8px;
+          background: #fef2f2;
+          border: 1px solid #fecaca;
+          color: #b91c1c;
+          font-size: 0.8rem;
+          font-weight: 600;
+        }
+
         .certificates__download-btn {
           display: inline-flex;
           align-items: center;
@@ -326,18 +410,28 @@ export default function Certificates() {
               <select
                 id="intern"
                 className="certificates__select"
-                value={form.intern}
+                value={form.applicationId}
                 onChange={handleInternChange}
+                disabled={internsLoading || interns.length === 0}
               >
                 <option value="" disabled hidden>
-                  Select intern
+                  {internsLoading
+                    ? "Loading accepted interns…"
+                    : interns.length === 0
+                    ? "No accepted interns yet"
+                    : "Select intern"}
                 </option>
                 {interns.map((i) => (
-                  <option key={i.name} value={i.name}>
-                    {i.name}
+                  <option key={i.id} value={i.id}>
+                    {i.name} — {i.appliedFor}
                   </option>
                 ))}
               </select>
+              {internsError && (
+                <p style={{ color: "#b91c1c", fontSize: "0.78rem", marginTop: "6px" }}>
+                  Couldn't load applicants: {internsError}
+                </p>
+              )}
             </div>
 
             <div className="certificates__field">
@@ -407,7 +501,13 @@ export default function Certificates() {
               </p>
             </div>
 
-            <button className="certificates__download-btn" type="button">
+            {formError && <p className="certificates__error">{formError}</p>}
+
+            <button
+              className="certificates__download-btn"
+              type="button"
+              onClick={handleDownload}
+            >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 3v12m0 0-4-4m4 4 4-4M4 21h16" />
               </svg>
@@ -415,36 +515,10 @@ export default function Certificates() {
             </button>
           </div>
 
-          <div className="certificates__card">
-            <h2 className="certificates__card-title">Issued certificates</h2>
-
-            <div className="certificates__issued-list">
-              {issuedCertificates.map((cert) => {
-                const style = statusStyles[cert.status];
-                return (
-                  <div className="certificates__issued-item" key={cert.id}>
-                    <div>
-                      <p className="certificates__issued-name">{cert.name}</p>
-                      <p className="certificates__issued-detail">{cert.detail}</p>
-                    </div>
-                    <div className="certificates__issued-right">
-                      <span
-                        className="certificates__status-pill"
-                        style={{ background: style.bg, color: style.color }}
-                      >
-                        {cert.status}
-                      </span>
-                      <button className="certificates__icon-btn" type="button" aria-label="Download">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M12 3v12m0 0-4-4m4 4 4-4M4 21h16" />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+          <IssuedCertificates
+            certificates={issuedCertificates}
+            onDownload={handleReDownload}
+          />
         </div>
       </div>
     </>
