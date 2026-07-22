@@ -1,10 +1,12 @@
 package com.example.ojtmanagementsystem.config;
 
 import com.example.ojtmanagementsystem.entity.Coordinator;
+import com.example.ojtmanagementsystem.entity.RequirementDefinition;
 import com.example.ojtmanagementsystem.entity.Role;
 import com.example.ojtmanagementsystem.entity.User;
 import com.example.ojtmanagementsystem.entity.UserStatus;
 import com.example.ojtmanagementsystem.repository.CoordinatorRepository;
+import com.example.ojtmanagementsystem.repository.RequirementDefinitionRepository;
 import com.example.ojtmanagementsystem.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -105,6 +107,20 @@ public class DataInitializer {
         };
     }
 
+    @Bean
+    public CommandLineRunner seedRequirementDefinitions(RequirementDefinitionRepository requirementDefinitionRepository) {
+        return args -> {
+            if (requirementDefinitionRepository.count() == 0) {
+                requirementDefinitionRepository.save(new RequirementDefinition(
+                    "Resume / CV", "Updated resume with complete educational and work experience"));
+                requirementDefinitionRepository.save(new RequirementDefinition(
+                    "Endorsement Letter", "Signed endorsement letter from your school coordinator"));
+                requirementDefinitionRepository.save(new RequirementDefinition(
+                    "Certificate of Good Moral", "Certificate issued within the last 6 months"));
+            }
+        };
+    }
+
     private boolean isPasswordEncoded(String password) {
         return password.startsWith("$2a$")
                 || password.startsWith("$2b$")
@@ -116,5 +132,3 @@ public class DataInitializer {
         return value == null || value.isBlank();
     }
 }
-
-
