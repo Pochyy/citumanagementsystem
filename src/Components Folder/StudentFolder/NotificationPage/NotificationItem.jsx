@@ -16,16 +16,8 @@ import React from "react";
  *  - message          -> ERD: Message                   [string]
  *  - isRead          -> ERD: IsRead                    [boolean]
  *  - createdDate     -> ERD: CreatedDate               [datetime]
- *
- * TODO (Backend Integration):
- *  - When Spring Boot is connected, "createdDate" will arrive as a raw
- *    ISO datetime string and should be converted to a relative time
- *    string ("Just now", "1 hour ago", etc.) either on the backend or
- *    via a utility function on the frontend.
- *  - "isRead" will control the highlighted background (unread = shaded).
- *  - Clicking a notification should eventually call a Spring Boot endpoint
- *    such as PATCH /api/notifications/{notificationId}/read to update
- *    IsRead in the database.
+ *  - onClick         -> called when the row is clicked; parent uses this
+ *                       to PATCH /api/notifications/{notificationId}/read
  */
 const NotificationItem = ({
   notificationId, // TODO: DB PK - use as React key in parent .map()
@@ -34,8 +26,8 @@ const NotificationItem = ({
   message,
   isRead,
   createdDate,
+  onClick,
 }) => {
-  // Inline style objects (kept local to this component for encapsulation)
   const styles = {
     row: {
       display: "flex",
@@ -53,7 +45,6 @@ const NotificationItem = ({
       backgroundColor: "#7a1f2b",
       marginTop: "6px",
       flexShrink: 0,
-      // Read notifications show no dot (transparent placeholder keeps alignment)
       visibility: isRead ? "hidden" : "visible",
     },
     textWrapper: {
@@ -75,14 +66,10 @@ const NotificationItem = ({
   };
 
   return (
-    // TODO: onClick={() => handleMarkAsRead(notificationId)} passed down
-    // from parent, which will call the Spring Boot PATCH endpoint above.
-    <div style={styles.row}>
+    <div style={styles.row} onClick={onClick}>
       <span style={styles.dot} />
       <div style={styles.textWrapper}>
         <p style={styles.title}>{title}</p>
-        {/* Message field from ERD is available here if the design ever
-            needs to show the full notification body */}
         <p style={styles.timestamp}>{createdDate}</p>
       </div>
     </div>
