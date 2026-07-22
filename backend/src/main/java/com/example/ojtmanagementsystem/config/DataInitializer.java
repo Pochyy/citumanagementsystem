@@ -50,7 +50,58 @@ public class DataInitializer {
                     existingUser.setPassword(passwordEncoder.encode(currentPassword));
                     userRepository.save(existingUser);
                 }
+
+                // Backfill coordinator profile fields if they were added after the account was created
+                coordinatorRepository.findByUser_UserId(existingUser.getUserId()).ifPresent(coordinator -> {
+                    boolean needsUpdate = false;
+
+                    if (isBlank(coordinator.getDepartment())) {
+                        coordinator.setDepartment("College of Computer Studies");
+                        needsUpdate = true;
+                    }
+                    if (isBlank(coordinator.getOfficeHours())) {
+                        coordinator.setOfficeHours("Mon–Fri, 9:00 AM – 5:00 PM");
+                        needsUpdate = true;
+                    }
+                    if (isBlank(coordinator.getPhone())) {
+                        coordinator.setPhone("+63 917 123 4567");
+                        needsUpdate = true;
+                    }
+                    if (isBlank(coordinator.getAddress())) {
+                        coordinator.setAddress("Cebu City, Philippines");
+                        needsUpdate = true;
+                    }
+                    if (isBlank(coordinator.getProgram())) {
+                        coordinator.setProgram("Bachelor of Science in Information Technology");
+                        needsUpdate = true;
+                    }
+                    if (isBlank(coordinator.getYearAssigned())) {
+                        coordinator.setYearAssigned("2024 – 2025");
+                        needsUpdate = true;
+                    }
+                    if (isBlank(coordinator.getCampus())) {
+                        coordinator.setCampus("CIT-U Main Campus");
+                        needsUpdate = true;
+                    }
+                    if (coordinator.getStudentsHandled() == null) {
+                        coordinator.setStudentsHandled(89);
+                        needsUpdate = true;
+                    }
+                    if (coordinator.getCompaniesManaged() == null) {
+                        coordinator.setCompaniesManaged(35);
+                        needsUpdate = true;
+                    }
+                    if (coordinator.getDocsVerified() == null) {
+                        coordinator.setDocsVerified(156);
+                        needsUpdate = true;
+                    }
+
+                    if (needsUpdate) {
+                        coordinatorRepository.save(coordinator);
+                    }
+                });
             }
+
         };
     }
 
@@ -60,4 +111,10 @@ public class DataInitializer {
                 || password.startsWith("$2y$")
                 || password.startsWith("$argon2$");
     }
+
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
+    }
 }
+
+
