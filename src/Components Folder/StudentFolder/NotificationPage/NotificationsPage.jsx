@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import NotificationItem from "./NotificationItem";
+import NotificationDetailModal from "./NotificationDetailModal";
 
 const API_BASE = "http://localhost:8080";
 
@@ -29,6 +30,7 @@ const NotificationsPage = () => {
   const [notifications, setNotifications] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedNotification, setSelectedNotification] = useState(null);
 
   useEffect(() => {
     if (!userId) {
@@ -68,9 +70,17 @@ const NotificationsPage = () => {
       });
   };
 
-  // Derived value: count of unread notifications.
-  // NOTE: entity's isRead() getter serializes as "read" in JSON (Jackson
-  // strips the "is" prefix from boolean getters) - so we check n.read here.
+  const handleOpenNotification = (notification) => {
+    setSelectedNotification(notification);
+    if (!notification.read) {
+      handleMarkAsRead(notification.notificationId);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setSelectedNotification(null);
+  };
+
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   const styles = {
@@ -154,10 +164,19 @@ const NotificationsPage = () => {
               message={notification.message}
               isRead={notification.read}
               createdDate={formatRelativeTime(notification.createdDate)}
-              onClick={() => !notification.read && handleMarkAsRead(notification.notificationId)}
+              onClick={() => handleOpenNotification(notification)}
             />
           ))}
       </div>
+
+      <NotificationDetailModal
+        notification={
+          selectedNotification
+            ? { ...selectedNotification, createdDate: formatRelativeTime(selectedNotification.createdDate) }
+            : null
+        }
+        onClose={handleCloseModal}
+      />
     </div>
   );
 };
